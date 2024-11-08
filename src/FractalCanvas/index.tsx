@@ -96,12 +96,7 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
     <LiveApp canvas={canvas}>
       <Gather
         children={[
-          // <Serpinski key="2" />,
-          <ComputeBuffer
-            key="3"
-            format="u32"
-            resolution={1}
-          />,
+          <Serpinski key="1" />,
           <ComputeBuffer
             key="2"
             format="u32"
@@ -114,7 +109,7 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
               <Suspense>
                 <Stage target={histogram}>
                   <Kernel
-                    // sources={[xforms]}
+                    source={xforms}
                     shader={generatePoints}
                   />
                   <Readback
@@ -155,14 +150,14 @@ const Camera: LC<CameraProps> = (props: CameraProps) => (
 const Serpinski: LC = () => {
   const data: XForm[] = [
     {
-      variation_id: 0,
+      variation_id: 1,
       affine: [0.5, 0.0, 0.0,
         0.5, 0.0, 0.0],
       color: 0,
       weight: 1,
     },
     {
-      variation_id: 0,
+      variation_id: 2,
       affine: [0.5, 0.0, 0.5,
         0.5, 0.0, 0.0],
       color: 0,
