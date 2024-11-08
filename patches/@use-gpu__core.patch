@@ -1,0 +1,30 @@
+diff --git a/cjs/bindgroup.cjs b/cjs/bindgroup.cjs
+index c0acdbbaa42776bf2c23d2eeab8603c3c7246965..e1817bc057aa2c6ab6360a6aacdd08459c1782d8 100644
+--- a/cjs/bindgroup.cjs
++++ b/cjs/bindgroup.cjs
+@@ -206,8 +206,8 @@ const makeBindGroup = (device, layout, entries)=>{
+ const getMinBindingSize = (format, type)=>{
+     if (type) {
+         const { module } = type;
+-        const { entry, table: { declarations } } = module;
+-        const { struct } = declarations.find((d)=>d.struct?.name === entry);
++        const { entry, table: { declarations, exports } } = module;
++        const { struct } = (declarations || exports).find((d)=>d.struct?.name === entry);
+         if (!struct) return 0;
+         const members = struct.members.map((m)=>({
+                 name: m.name,
+diff --git a/mjs/bindgroup.mjs b/mjs/bindgroup.mjs
+index 32034b6aa9eeef0a1f49ce27a5024956154d997f..26697847bb09738d0026aa98dc36535df58da93c 100644
+--- a/mjs/bindgroup.mjs
++++ b/mjs/bindgroup.mjs
+@@ -176,8 +176,8 @@ export const makeBindGroup = (device, layout, entries)=>{
+ export const getMinBindingSize = (format, type)=>{
+     if (type) {
+         const { module } = type;
+-        const { entry, table: { declarations } } = module;
+-        const { struct } = declarations.find((d)=>d.struct?.name === entry);
++        const { entry, table: { declarations, exports } } = module;
++        const { struct } = (declarations || exports).find((d)=>d.struct?.name === entry);
+         if (!struct) return 0;
+         const members = struct.members.map((m)=>({
+                 name: m.name,

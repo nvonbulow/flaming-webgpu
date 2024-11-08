@@ -4,10 +4,18 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@use-gpu/core':
+    hash: 5vfbrqaokoe3ekuztl4iyvs6ay
+    path: patches/@use-gpu__core.patch
+
 importers:
 
   .:
     dependencies:
+      '@use-gpu/core':
+        specifier: ^0.12.0
+        version: 0.12.0(patch_hash=5vfbrqaokoe3ekuztl4iyvs6ay)
       '@use-gpu/inspect':
         specifier: ^0.12.0
         version: 0.12.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -36,6 +44,9 @@ importers:
         specifier: ^0.12.0
         version: 0.12.0
       '@use-gpu/webgpu':
+        specifier: ^0.12.0
+        version: 0.12.0
+      '@use-gpu/wgsl':
         specifier: ^0.12.0
         version: 0.12.0
       '@use-gpu/wgsl-loader':
@@ -2128,7 +2139,7 @@ snapshots:
       '@codemirror/state': 6.4.1
       '@codemirror/view': 6.34.2
 
-  '@use-gpu/core@0.12.0':
+  '@use-gpu/core@0.12.0(patch_hash=5vfbrqaokoe3ekuztl4iyvs6ay)':
     dependencies:
       '@use-gpu/state': 0.12.0
       earcut: 2.2.4
@@ -2167,7 +2178,7 @@ snapshots:
   '@use-gpu/inspect@0.12.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@stitches/react': 1.2.8(react@18.3.1)
-      '@use-gpu/core': 0.12.0
+      '@use-gpu/core': 0.12.0(patch_hash=5vfbrqaokoe3ekuztl4iyvs6ay)
       '@use-gpu/live': 0.12.0
       '@use-gpu/react': 0.12.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@use-gpu/state': 0.12.0
@@ -2177,7 +2188,7 @@ snapshots:
 
   '@use-gpu/layout@0.12.0':
     dependencies:
-      '@use-gpu/core': 0.12.0
+      '@use-gpu/core': 0.12.0(patch_hash=5vfbrqaokoe3ekuztl4iyvs6ay)
       '@use-gpu/live': 0.12.0
       '@use-gpu/shader': 0.12.0
       '@use-gpu/state': 0.12.0
@@ -2192,12 +2203,12 @@ snapshots:
 
   '@use-gpu/parse@0.12.0':
     dependencies:
-      '@use-gpu/core': 0.12.0
+      '@use-gpu/core': 0.12.0(patch_hash=5vfbrqaokoe3ekuztl4iyvs6ay)
       gl-matrix: 3.4.3
 
   '@use-gpu/plot@0.12.0':
     dependencies:
-      '@use-gpu/core': 0.12.0
+      '@use-gpu/core': 0.12.0(patch_hash=5vfbrqaokoe3ekuztl4iyvs6ay)
       '@use-gpu/live': 0.12.0
       '@use-gpu/shader': 0.12.0
       '@use-gpu/workbench': 0.12.0
@@ -2230,7 +2241,7 @@ snapshots:
 
   '@use-gpu/webgpu@0.12.0':
     dependencies:
-      '@use-gpu/core': 0.12.0
+      '@use-gpu/core': 0.12.0(patch_hash=5vfbrqaokoe3ekuztl4iyvs6ay)
       '@use-gpu/live': 0.12.0
       '@use-gpu/workbench': 0.12.0
     transitivePeerDependencies:
@@ -2247,7 +2258,7 @@ snapshots:
 
   '@use-gpu/workbench@0.12.0':
     dependencies:
-      '@use-gpu/core': 0.12.0
+      '@use-gpu/core': 0.12.0(patch_hash=5vfbrqaokoe3ekuztl4iyvs6ay)
       '@use-gpu/glyph': 0.12.0
       '@use-gpu/live': 0.12.0
       '@use-gpu/parse': 0.12.0
