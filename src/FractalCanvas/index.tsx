@@ -96,26 +96,29 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
     <LiveApp canvas={canvas}>
       <Gather
         children={[
+          // xforms
           <Serpinski key="1" />,
+          // histogram
           <ComputeBuffer
             key="2"
             format="u32"
             resolution={1}
           />,
         ]}
-        then={([xforms, histogram]: StorageTarget[]) => {
+        then={([xforms, histogram ]: StorageTarget[]) => {
           return <>
             <Compute>
               <Suspense>
                 <Stage target={histogram}>
                   <Kernel
+                    initial
                     source={xforms}
                     shader={generatePoints}
                   />
                   <Readback
                     source={histogram}
                     then={(data) => {
-                      console.log('Readback', data);
+                      console.log('histogram', data);
                       return null;
                     }}
                   />
@@ -150,14 +153,14 @@ const Camera: LC<CameraProps> = (props: CameraProps) => (
 const Serpinski: LC = () => {
   const data: XForm[] = [
     {
-      variation_id: 1,
+      variation_id: 0,
       affine: [0.5, 0.0, 0.0,
         0.5, 0.0, 0.0],
       color: 0,
       weight: 1,
     },
     {
-      variation_id: 2,
+      variation_id: 0,
       affine: [0.5, 0.0, 0.5,
         0.5, 0.0, 0.0],
       color: 0,
