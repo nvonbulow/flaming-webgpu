@@ -10,6 +10,7 @@ use './random'::{ seed, rand, frand, hash };
 
 const RANGE_X: vec2<f32> = vec2<f32>(-1.0, 1.0);
 const RANGE_Y: vec2<f32> = vec2<f32>(-1.0, 1.0);
+const NUM_XFORMS: u32 = 3;
 
 fn scaleMatrix() -> mat3x3<f32> {
   let size = getSize();
@@ -41,6 +42,23 @@ fn plot(p: vec3<f32>) {
   atomicAdd(&histogram.bins[offset], 1);
 }
 
+fn apply_xform(xform: XForm, p: vec3<f32>) -> vec3<f32> {
+  let T = mat3x3<f32>(
+    vec3f(xform.affine[0], 0.0),
+    vec3f(xform.affine[1], 0.0),
+    vec3f(xform.affine[2], 1.0),
+  );
+  let pt = vec3<f32>(p.xy, 1.0) * T;
+  // todo: color blending
+  return vec3<f32>(pt.xy, p.z);
+}
+
+fn next(p: vec3<f32>) -> vec3<f32> {
+  let xform = xforms[rand() % NUM_XFORMS - 1];
+  let pt = apply_xform(xform, p);
+  return pt;
+}
+
 @compute @workgroup_size(8, 8)
 fn main(@builtin(global_invocation_id) globalId: vec3<u32>) {
   let size = getSize();
@@ -56,8 +74,10 @@ fn main(@builtin(global_invocation_id) globalId: vec3<u32>) {
   let xform = xforms[0];
 
   // IMPORTANT!!: z is the color of the point
-  let p = vec3<f32>((frand() - 0.5) * 2, (frand() - 0.5) * 2, 0.0);
-
-  plot(p);
+  var p = vec3<f32>((frand() - 0.5) * 2, (frand() - 0.5) * 2, 0.0);
+  for (var i = 0u; i < 100u; i += 1u) {
+    plot(p);
+    p = next(p);
+  }
 }
 
