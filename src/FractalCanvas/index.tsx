@@ -125,6 +125,8 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
                     initial
                     source={xforms}
                     shader={generatePoints}
+                    // number of threads
+                    size={[1]}
                   />
                   <Readback
                     source={histogram}

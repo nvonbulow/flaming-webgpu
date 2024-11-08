@@ -3,7 +3,6 @@ use './types'::{ XForm, Flame, Histogram };
 use './random'::{ seed, rand, frand, hash };
 
 @link fn getSize() -> vec2<u32> {}
-
 @link var<storage> xforms: array<XForm>;
 
 @link var<storage, read_write> histogram: Histogram;
@@ -11,9 +10,10 @@ use './random'::{ seed, rand, frand, hash };
 const RANGE_X: vec2<f32> = vec2<f32>(-1.0, 1.0);
 const RANGE_Y: vec2<f32> = vec2<f32>(-1.0, 1.0);
 const NUM_XFORMS: u32 = 3;
+const HISTOGRAM_SIZE: vec2<u32> = vec2<u32>(800, 600);
 
 fn scaleMatrix() -> mat3x3<f32> {
-  let size = getSize();
+  let size = HISTOGRAM_SIZE;
   let x_factor = f32(size.x - 1) / (RANGE_X.y - RANGE_X.x);
   let y_factor = f32(size.y - 1) / (RANGE_Y.y - RANGE_Y.x);
 
@@ -34,7 +34,7 @@ fn plot(p: vec3<f32>) {
   // scaled point
   let ps = vec2<i32>(scalePoint(p.xy));
 
-  let size = getSize();
+  let size = HISTOGRAM_SIZE;
   var offset = u32(ps.x) * size.y + u32(ps.y);
   if ps.x < 0 || ps.y < 0 || ps.x >= i32(size.x) || ps.y >= i32(size.y) {
     offset = u32(0);
@@ -59,27 +59,23 @@ fn next(p: vec3<f32>) -> vec3<f32> {
   return pt;
 }
 
-@compute @workgroup_size(8, 8)
+@compute @workgroup_size(1)
 fn main(@builtin(global_invocation_id) globalId: vec3<u32>) {
-  let size = getSize();
+  // unused but needed for linker
+  let s = getSize();
+
+  let size = HISTOGRAM_SIZE;
   
   seed(hash(globalId.x * size.y + globalId.y));
 
-  if any(globalId.xy >= size) { return; }
-  let fragmentId = globalId.xy;
-
-  let modulus = sizeToModulus2(size);
-  let index = packIndex2(fragmentId, modulus);
-
-  let xform = xforms[0];
-
   // IMPORTANT!!: z is the color of the point
   var p = vec3<f32>((frand() - 0.5) * 2, (frand() - 0.5) * 2, 0.0);
+  // var p = vec3<f32>(0.0, 0.0, 0.0);
   // skip first 15 iterations
-  for (var i = 0u; i < 2u; i += 1u) {
+  for (var i = 0u; i < 15u; i += 1u) {
     p = next(p);
   }
-  for (var i = 0u; i < 4u; i += 1u) {
+  for (var i = 0u; i < 100000u; i += 1u) {
     plot(p);
     p = next(p);
   }
