@@ -75,7 +75,11 @@ fn main(@builtin(global_invocation_id) globalId: vec3<u32>) {
 
   // IMPORTANT!!: z is the color of the point
   var p = vec3<f32>((frand() - 0.5) * 2, (frand() - 0.5) * 2, 0.0);
-  for (var i = 0u; i < 100u; i += 1u) {
+  // skip first 15 iterations
+  for (var i = 0u; i < 2u; i += 1u) {
+    p = next(p);
+  }
+  for (var i = 0u; i < 4u; i += 1u) {
     plot(p);
     p = next(p);
   }

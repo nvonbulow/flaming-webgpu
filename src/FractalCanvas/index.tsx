@@ -2,7 +2,7 @@ import React, { Gather, type LC, type PropsWithChildren, useFiber } from '@use-g
 
 import { HTML } from '@use-gpu/react';
 import { Canvas, DOMEvents, WebGPU } from '@use-gpu/webgpu';
-import { DebugProvider, FontLoader, FlatCamera, CursorProvider, PickingTarget, PanControls, LinearRGB, ComputeBuffer, Compute, Suspense, Stage, Kernel, useShader, useLambdaSource, RawFullScreen, StructData, Readback } from '@use-gpu/workbench';
+import { DebugProvider, FontLoader, FlatCamera, CursorProvider, PickingTarget, PanControls, LinearRGB, ComputeBuffer, Compute, Suspense, Stage, Kernel, useShader, useLambdaSource, RawFullScreen, StructData, Readback, Pass } from '@use-gpu/workbench';
 import { StorageTarget } from '@use-gpu/core';
 
 import { wgsl } from '@use-gpu/shader/wgsl';
@@ -14,6 +14,7 @@ import '@use-gpu/inspect/theme.css';
 import { makeFallback } from './Fallback';
 
 import { main as generatePoints } from './wgsl/generate_points.wgsl';
+import { main as histogramMax } from './wgsl/histogram_max.wgsl';
 import { XForm } from './wgsl/types.wgsl';
 
 // interface Flame {
@@ -74,18 +75,19 @@ const LiveApp: LC<PropsWithChildren<FractalCanvasProps>> = ({ canvas, children }
 };
 
 const debugShader = wgsl`
-  @link fn getSample(i: u32) -> vec4<f32> {};
+  @link fn getSample(i: u32) -> u32 {};
   @link fn getSize() -> vec4<u32> {};
-  @optional @link fn getGain() -> f32 { return 1.0; };
+  @link fn getMax() -> u32 {};
 
   fn main(uv: vec2<f32>) -> vec4<f32> {
-    let gain = getGain();
     let size = getSize();
     let iuv = vec2<u32>(uv * vec2<f32>(size.xy));
     let i = iuv.x + iuv.y * size.x;
 
-    let value = getSample(i).x * gain;
-    return sqrt(vec4<f32>(value, max(value * .1, max(0.0, -value * .3)), max(0.0, -value), 1.0));
+    let sample = getSample(i);
+    let max = getMax();
+    let value = log(f32(sample)) / log(f32(max));
+    return vec4<f32>(value, value, value, 1.0);
   }
 `;
 
@@ -97,15 +99,24 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
       <Gather
         children={[
           // xforms
-          <Serpinski key="1" />,
+          <XFormData key="1" />,
           // histogram
           <ComputeBuffer
             key="2"
             format="u32"
             resolution={1}
+            label="histogram"
+          />,
+          <ComputeBuffer
+            key="3"
+            format="u32"
+            label="histogram_max"
+            width={1}
+            height={1}
+            depth={1}
           />,
         ]}
-        then={([xforms, histogram ]: StorageTarget[]) => {
+        then={([xforms, histogram, histogram_max ]: StorageTarget[]) => {
           return <>
             <Compute>
               <Suspense>
@@ -123,8 +134,28 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
                     }}
                   />
                 </Stage>
+                <Stage target={histogram_max}>
+                  <Kernel
+                    initial
+                    source={histogram}
+                    shader={histogramMax}
+                    size={histogram.size}
+                  />
+                  <Readback
+                    source={histogram_max}
+                    then={(data) => {
+                      console.log('histogram_max', data);
+                      return null;
+                    }}
+                  />
+                </Stage>
               </Suspense>
             </Compute>
+            <FlatCamera>
+              <Pass>
+                <DebugField field={histogram} max={histogram_max} />
+              </Pass>
+            </FlatCamera>
           </>;
         }}
       />
@@ -132,8 +163,8 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
   );
 };
 
-const DebugField = ({ field }: { field: StorageTarget }) => {
-  const boundShader = useShader(debugShader, [field, () => field.size, 1]);
+const DebugField = ({ field, max }: { field: StorageTarget, max: StorageTarget }) => {
+  const boundShader = useShader(debugShader, [field, () => field.size, max]);
   const textureSource = useLambdaSource(boundShader, field);
   return (
     <RawFullScreen texture={textureSource} />
@@ -150,7 +181,8 @@ const Camera: LC<CameraProps> = (props: CameraProps) => (
     }</PanControls>
 );
 
-const Serpinski: LC = () => {
+const XFormData: LC = () => {
+  // serpinski triangle
   const data: XForm[] = [
     {
       variation_id: 0,
@@ -168,8 +200,25 @@ const Serpinski: LC = () => {
     },
     {
       variation_id: 0,
-      affine: [0.5, 0.0, 0.25,
+      affine: [0.5, 0.0, 0.5,
         0.5, 0.0, 0.5],
+      color: 0,
+      weight: 1,
+    },
+  ];
+
+  const _data = [
+    {
+      variation_id: 0,
+      affine: [0.42, 0.50, 0.21,
+        0.0, -0.33, -0.50],
+      color: 0,
+      weight: 1,
+    },
+    {
+      variation_id: 0,
+      affine: [0.47, 0.0, -0.40,
+        0.58, 0.50, -0.01],
       color: 0,
       weight: 1,
     },

@@ -19,3 +19,7 @@
   bins: array<atomic<u32>>,
 };
 
+@export struct HistogramInput {
+  bins: array<u32>,
+};
+
