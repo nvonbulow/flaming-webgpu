@@ -3,10 +3,10 @@ use './types'::{ XForm, Flame, Histogram, HistogramBucket };
 use './random'::{ seed, rand, frand, hash };
 
 @link fn getSize() -> vec2<u32> {}
+@link fn getSeed() -> u32 {}
 @link var<storage> xforms: array<XForm>;
 
 @link var<storage, read_write> histogram: Histogram;
-@link var<storage, read_write> point_history: array<vec3<f32>>;
 
 const RANGE_X: vec2<f32> = vec2<f32>(-1.0, 1.0);
 // make sure the aspect ratio is the same as the histogram
@@ -63,13 +63,10 @@ fn plot(p: vec3<f32>) {
 }
 
 const COLOR_SPEED: f32 = 0.5;
-// // Linear interpolation between the last color and the new color
-// let color = color_speed * color + (1.0 - color_speed) * last_color;
 
 fn apply_xform(xform: XForm, p: vec3<f32>) -> vec3<f32> {
   let T = xform.affine;
   let pt = vec3<f32>(p.xy, 1.0) * T;
-  // todo: color blending
   let color = p.z;
   let c = mix(color, xform.color, COLOR_SPEED);
   return vec3<f32>(pt.xy, c);
@@ -80,37 +77,25 @@ fn next(p: vec3<f32>) -> vec3<f32> {
   let xform_idx = rand() % NUM_XFORMS;
   let xform = xforms[u32(xform_idx)];
   let pt = apply_xform(xform, p);
-  // let pt = p;
-  if (point_count < 500000) {
-    point_history[point_count] = vec3<f32>(pt.xy, f32(xform_idx));
-    point_count += 1;
-  }
   return pt;
 }
 
 
 @compute @workgroup_size(1)
 fn main(@builtin(global_invocation_id) globalId: vec3<u32>) {
-  // only allow one thread to run for debugging
-  if (globalId.x != 0 || globalId.y != 0) {
-    return;
-  }
   // unused but needed for linker
   let s = getSize();
 
   let size = HISTOGRAM_SIZE;
   
-  // seed(hash(globalId.x * size.y + globalId.y));
-  seed(3934749);
+  seed(hash(globalId.x * size.y + globalId.y + 1u) ^ hash(getSeed()));
 
-  // IMPORTANT!!: z is the color of the point
   var p = vec3<f32>((frand() - 0.5) * 2, (frand() - 0.5) * 2, 0.0);
-  // var p = vec3<f32>(0.0, 0.0, 0.0);
   // skip first 15 iterations
   for (var i = 0u; i < 1u; i += 1u) {
     p = next(p);
   }
-  for (var i = 0u; i < 1000000u; i += 1u) {
+  for (var i = 0u; i < 1000u; i += 1u) {
     plot(p);
     p = next(p);
   }

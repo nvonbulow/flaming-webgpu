@@ -2,7 +2,7 @@ import React, { Gather, type LC, type PropsWithChildren, useFiber } from '@use-g
 
 import { HTML } from '@use-gpu/react';
 import { Canvas, DOMEvents, WebGPU } from '@use-gpu/webgpu';
-import { DebugProvider, FontLoader, FlatCamera, CursorProvider, PickingTarget, PanControls, LinearRGB, ComputeBuffer, Compute, Suspense, Stage, Kernel, useShader, useLambdaSource, RawFullScreen, StructData, Readback, Pass, TextureBuffer } from '@use-gpu/workbench';
+import { DebugProvider, FontLoader, FlatCamera, CursorProvider, PickingTarget, PanControls, LinearRGB, ComputeBuffer, Compute, Suspense, Stage, Kernel, useShader, useLambdaSource, RawFullScreen, StructData, Readback, Pass, TextureBuffer, Loop, useAnimationFrame } from '@use-gpu/workbench';
 import { StorageTarget } from '@use-gpu/core';
 
 import { wgsl } from '@use-gpu/shader/wgsl';
@@ -17,10 +17,6 @@ import { main as generatePoints } from './wgsl/generate_points.wgsl';
 import { main as histogramMax } from './wgsl/histogram_max.wgsl';
 import { main as renderHistogram } from './wgsl/histogram_render.wgsl';
 import { XForm } from './wgsl/types.wgsl';
-
-// interface Flame {
-//   xforms: XForm[];
-// }
 
 interface XForm {
   variation_id: number;
@@ -42,7 +38,7 @@ interface FractalCanvasProps {
   canvas: HTMLCanvasElement;
 }
 
-const LiveApp: LC<PropsWithChildren<FractalCanvasProps>> = ({ canvas, children }) => {
+export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
   const root = document.querySelector('#use-gpu')!;
 
   // This is for the UseInspect inspector only
@@ -58,30 +54,30 @@ const LiveApp: LC<PropsWithChildren<FractalCanvasProps>> = ({ canvas, children }
           width={canvas.width}
           height={canvas.height}
         >
-          <LinearRGB>
-            <PickingTarget>
-              <DOMEvents element={canvas}>
-                <CursorProvider element={canvas}>
-                  <FontLoader fonts={FONTS}>
-                    {children}
-                  </FontLoader>
-                </CursorProvider>
-              </DOMEvents>
-            </PickingTarget>
-          </LinearRGB>
+          <Loop live>
+            <LinearRGB>
+              <PickingTarget>
+                <DOMEvents element={canvas}>
+                  <CursorProvider element={canvas}>
+                    <FontLoader fonts={FONTS}>
+                      <FractalCanvasInternal />
+                    </FontLoader>
+                  </CursorProvider>
+                </DOMEvents>
+              </PickingTarget>
+            </LinearRGB>
+          </Loop>
         </Canvas>
       </WebGPU>
     </UseInspect>
   );
 };
 
-
-
-
-export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
-
+const FractalCanvasInternal: LC = () => {
+  const { timestamp } = useAnimationFrame();
+  const rand_seed = timestamp;
   return (
-    <LiveApp canvas={canvas}>
+    <>
       <Gather
         children={[
           // xforms
@@ -106,67 +102,46 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
             height={1}
             depth={1}
           />,
-          <ComputeBuffer
-            key="4"
-            format="vec3<f32>"
-            label="point_history"
-            width={500000}
-            height={1}
-            depth={1}
-          />,
           <TextureBuffer
             key="5"
             format="rgba32float"
-          />
+          />,
+          <ComputeBuffer
+            key="6"
+            format="vec4<f32>"
+          />,
         ]}
-        then={([xforms, histogram, histogram_max, point_history, texture ]: StorageTarget[]) => {
-          console.log(texture);
+        then={([xforms, histogram, histogram_max, texture, textureBuf]: StorageTarget[]) => {
           return <>
             <Compute>
               <Suspense>
-                <Stage targets={[histogram, point_history]}>
+                <Stage targets={[histogram]}>
                   <Kernel
-                    initial
                     source={xforms}
                     shader={generatePoints}
+                    args={[rand_seed]}
                     // number of threads
                     size={[1]}
-                  />
-                  <Readback
-                    source={histogram}
-                    then={(data) => {
-                      console.log('histogram', data);
-                      return null;
-                    }}
-                  />
-                  <Readback
-                    source={point_history}
-                    then={(data) => {
-                      console.log('point history', data);
-                      return null;
-                    }}
                   />
                 </Stage>
                 <Stage target={histogram_max}>
                   <Kernel
-                    initial
                     source={histogram}
                     shader={histogramMax}
                     size={histogram.size}
                   />
-                  <Readback
-                    source={histogram_max}
-                    then={(data) => {
-                      console.log('histogram_max', data);
-                      return null;
-                    }}
-                  />
                 </Stage>
-                <Stage target={texture}>
+                <Stage targets={[texture, textureBuf]}>
                   <Kernel
-                    initial
                     sources={[histogram, histogram_max]}
                     shader={renderHistogram}
+                  />
+                  <Readback
+                    source={textureBuf}
+                    then={(data) => {
+                      console.log('histogram', data);
+                      return null;
+                    }}
                   />
                 </Stage>
               </Suspense>
@@ -179,7 +154,7 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
           </>;
         }}
       />
-    </LiveApp>
+    </>
   );
 };
 
