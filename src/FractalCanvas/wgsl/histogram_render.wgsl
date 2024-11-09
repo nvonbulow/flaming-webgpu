@@ -21,7 +21,14 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
     // log scale with max
     let log_scale = log(f32(bucket.count)) / log(f32(max));
-    let color = vec3<f32>(f32(bucket.r), f32(bucket.g), f32(bucket.b)) / (f32(bucket.count) + 1.0) / 255.0;
+    var color = vec3(f32(bucket.r), f32(bucket.g), f32(bucket.b));
+    color = color / (f32(bucket.count) + 1.0) * log_scale / 256.0;
+
+    // Post processing
+    // Gamma correction
+    let gamma = 4.0;
+    color = color * pow(log_scale, (1.0 / gamma));
+    
     textureStore(texture, vec2<u32>(x, y), vec4<f32>(color, log_scale));
     texture_buf[idx] = vec4<f32>(color, log_scale);
 }

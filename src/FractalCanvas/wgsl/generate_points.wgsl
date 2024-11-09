@@ -32,7 +32,18 @@ fn scalePoint(p: vec2<f32>) -> vec2<i32> {
   return vec2<i32>(round(scaled).xy);
 }
 
+fn hsv2rgb(c: vec3<f32>) -> vec3<f32> {
+    let K = vec4<f32>(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    let p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+    return c.z * mix(K.xxx, clamp(p - K.xxx, vec3(0.0), vec3(1.0)), c.y);
+}
+
+// HSV, full saturation and value
 fn sample_cmap(c: f32) -> vec3<f32> {
+  return hsv2rgb(vec3<f32>(c, 1.0, 1.0));
+}
+
+fn sample_cmap2(c: f32) -> vec3<f32> {
   // interpolate between <r, g, b> colors
   // 0 -> red, 0.5 -> green, 1 -> blue
   let r = vec3<f32>(1.0, 0.0, 0.0);
