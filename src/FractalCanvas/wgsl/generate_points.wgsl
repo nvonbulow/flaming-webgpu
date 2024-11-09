@@ -62,12 +62,17 @@ fn plot(p: vec3<f32>) {
   atomicAdd(&histogram.bins[offset].b, u32(round(color.b * 255.0)));
 }
 
+const COLOR_SPEED: f32 = 0.5;
+// // Linear interpolation between the last color and the new color
+// let color = color_speed * color + (1.0 - color_speed) * last_color;
+
 fn apply_xform(xform: XForm, p: vec3<f32>) -> vec3<f32> {
   let T = xform.affine;
   let pt = vec3<f32>(p.xy, 1.0) * T;
-  // let pt = p;
   // todo: color blending
-  return vec3<f32>(pt.xy, p.z);
+  let color = p.z;
+  let c = mix(color, xform.color, COLOR_SPEED);
+  return vec3<f32>(pt.xy, c);
 }
 
 var<private> point_count: u32 = 0;

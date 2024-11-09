@@ -18,8 +18,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let bucket = histogram.bins[idx];
     let max = histogram_max;
 
-    let color = vec3<f32>(1.0, 1.0, 1.0);
     // log scale with max
     let log_scale = log(f32(bucket.count)) / log(f32(max));
+    let color = vec3<f32>(f32(bucket.r), f32(bucket.g), f32(bucket.b)) / f32(bucket.count) / 255.0;
     textureStore(texture, vec2<u32>(x, y), vec4<f32>(color, log_scale));
 }
