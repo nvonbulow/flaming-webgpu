@@ -8,20 +8,20 @@ use './random'::{ seed, rand, frand, hash };
 
 @link var<storage, read_write> histogram: Histogram;
 
-const RANGE_X: vec2<f32> = vec2<f32>(-1.0, 1.0);
+const RANGE_X: vec2<f32> = vec2<f32>(-2.5, 2.5);
 // make sure the aspect ratio is the same as the histogram
-const RANGE_Y: vec2<f32> = vec2<f32>(-1.33, 1.33);
-const NUM_XFORMS: u32 = 3;
+const RANGE_Y: vec2<f32> = vec2<f32>(-0.2, 10.0);
+const NUM_XFORMS: u32 = 4;
 const HISTOGRAM_SIZE: vec2<u32> = vec2<u32>(800, 600);
 
 fn scaleMatrix() -> mat3x3<f32> {
   let size = HISTOGRAM_SIZE;
   let x_factor = f32(size.x - 1) / (RANGE_X.y - RANGE_X.x);
-  let y_factor = f32(size.y - 1) / (RANGE_Y.y - RANGE_Y.x);
+  let y_factor = f32(size.y - 1) / (RANGE_Y.x - RANGE_Y.y);
 
   return mat3x3<f32>(
     x_factor,      0.0, -x_factor * RANGE_X.x,
-         0.0, y_factor, -y_factor * RANGE_Y.x,
+         0.0, y_factor, -y_factor * RANGE_Y.y,
          0.0,      0.0,                   1.0,
   );
 }
@@ -72,14 +72,31 @@ fn apply_xform(xform: XForm, p: vec3<f32>) -> vec3<f32> {
   return vec3<f32>(pt.xy, c);
 }
 
-var<private> point_count: u32 = 0;
+fn rand_xform() -> XForm {
+  // let xform_idx = rand() % NUM_XFORMS;
+  // return xforms[u32(xform_idx)];
+
+  // For now, assume weights have been normalized
+  let r = frand();
+  var sum = 0.0;
+  var i = 0u;
+
+  for (; i < NUM_XFORMS; i += 1u) {
+    let xform = xforms[i];
+    sum += xform.weight;
+    if r < sum {
+      break;
+    }
+  }
+  
+  return xforms[i];
+}
+
 fn next(p: vec3<f32>) -> vec3<f32> {
-  let xform_idx = rand() % NUM_XFORMS;
-  let xform = xforms[u32(xform_idx)];
+  let xform = rand_xform();
   let pt = apply_xform(xform, p);
   return pt;
 }
-
 
 @compute @workgroup_size(1)
 fn main(@builtin(global_invocation_id) globalId: vec3<u32>) {
@@ -88,14 +105,15 @@ fn main(@builtin(global_invocation_id) globalId: vec3<u32>) {
 
   let size = HISTOGRAM_SIZE;
   
-  seed(hash(globalId.x * size.y + globalId.y + 1u) ^ hash(getSeed()));
+  seed(hash(globalId.x + 1u) ^ hash(getSeed()));
 
   var p = vec3<f32>((frand() - 0.5) * 2, (frand() - 0.5) * 2, 0.0);
   // skip first 15 iterations
-  for (var i = 0u; i < 1u; i += 1u) {
+  for (var i = 0u; i < 20u; i += 1u) {
     p = next(p);
   }
-  for (var i = 0u; i < 1000u; i += 1u) {
+  // todo: pull this out into batch size
+  for (var i = 0u; i < 10000u; i += 1u) {
     plot(p);
     p = next(p);
   }

@@ -81,11 +81,12 @@ const FractalCanvasInternal: LC = () => {
       <Gather
         children={[
           // xforms
-          <Sierpinski
-            key="1"
-            // centered on 0,0
-            points={[[0.0, 1.0], [0.5, -.866], [-0.5, -.866]]}
-          />,
+          // <Sierpinski
+          //   key="1"
+          //   // centered on 0,0
+          //   points={[[0.0, 1.0], [0.5, -.866], [-0.5, -.866]]}
+          // />,
+          <BarnsleyFern key="1" />,
           // histogram
           <ComputeBuffer
             key="2"
@@ -119,9 +120,11 @@ const FractalCanvasInternal: LC = () => {
                   <Kernel
                     source={xforms}
                     shader={generatePoints}
-                    args={[rand_seed]}
+                    args={[
+                      rand_seed,
+                    ]}
                     // number of threads
-                    size={[1]}
+                    size={[64]}
                   />
                 </Stage>
                 <Stage target={histogram_max}>
@@ -136,6 +139,7 @@ const FractalCanvasInternal: LC = () => {
                     sources={[histogram, histogram_max]}
                     shader={renderHistogram}
                   />
+                  {/*
                   <Readback
                     source={textureBuf}
                     then={(data) => {
@@ -143,6 +147,7 @@ const FractalCanvasInternal: LC = () => {
                       return null;
                     }}
                   />
+                  */}
                 </Stage>
               </Suspense>
             </Compute>
@@ -225,5 +230,59 @@ const Sierpinski: LC<{ points: number[][] }> = ({ points }) => {
     />
   );
 };
+
+const BarnsleyFern: LC = () => {
+  // Barnsley Fern
+  const data: XForm[] = [
+    // The stem
+    // <xform weight="0.01" color="0" coefs="0 0 0 0.16 0 0"/>
+    {
+      variation_id: 0,
+      affine: [0.0, 0.0, 0.0,
+        0.0, 0.16, 0.0,
+        0.0, 0.0, 1.0],
+      color: 0,
+      weight: 0.01,
+    },
+    // Repeating leaves
+    // <xform weight="0.85" color="0.33" coefs="0.85 -0.04 0.04 0.85 0 1.6"/>
+    {
+      variation_id: 1,
+      affine: [0.85, 0.04, 0.0,
+        -0.04, 0.85, 1.6,
+        0.0, 0.0, 1.0],
+      color: 0.5,
+      weight: 0.85,
+    },
+    // Main leaf on the left side
+    // <xform weight="0.07" color="0.67" coefs="0.2 0.23 -0.26 0.22 0 1.6"/>
+    {
+      variation_id: 0,
+      affine: [0.2, -0.26, 0.0,
+        0.23, 0.22, 1.6,
+        0.0, 0.0, 1.0],
+      color: 1.0,
+      weight: 0.07,
+    },
+    // Main leaf on the right side
+    // <xform weight="0.07" color="1" coefs="-0.15 0.26 0.28 0.24 0 0.44"/>
+    {
+      variation_id: 0,
+      affine: [-0.15, 0.28, 0.0,
+        0.26, 0.24, 0.44,
+        0.0, 0.0, 1.0],
+      color: 1.0,
+      weight: 0.07,
+    },
+  ];
+
+  return (
+    <StructData
+      format="array<T>"
+      type={XForm}
+      data={data}
+    />
+  );
+}
 
 FractalCanvas.displayName = 'FractalCanvas';
