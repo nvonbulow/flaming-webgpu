@@ -2,7 +2,7 @@ import React, { Gather, type LC, type PropsWithChildren, useFiber } from '@use-g
 
 import { HTML } from '@use-gpu/react';
 import { Canvas, DOMEvents, WebGPU } from '@use-gpu/webgpu';
-import { DebugProvider, FontLoader, FlatCamera, CursorProvider, PickingTarget, PanControls, LinearRGB, ComputeBuffer, Compute, Suspense, Stage, Kernel, useShader, useLambdaSource, RawFullScreen, StructData, Readback, Pass } from '@use-gpu/workbench';
+import { DebugProvider, FontLoader, FlatCamera, CursorProvider, PickingTarget, PanControls, LinearRGB, ComputeBuffer, Compute, Suspense, Stage, Kernel, useShader, useLambdaSource, RawFullScreen, StructData, Readback, Pass, TextureBuffer } from '@use-gpu/workbench';
 import { StorageTarget } from '@use-gpu/core';
 
 import { wgsl } from '@use-gpu/shader/wgsl';
@@ -15,6 +15,7 @@ import { makeFallback } from './Fallback';
 
 import { main as generatePoints } from './wgsl/generate_points.wgsl';
 import { main as histogramMax } from './wgsl/histogram_max.wgsl';
+import { main as renderHistogram } from './wgsl/histogram_render.wgsl';
 import { XForm } from './wgsl/types.wgsl';
 
 // interface Flame {
@@ -92,7 +93,8 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
           // histogram
           <ComputeBuffer
             key="2"
-            format="u32"
+            // HistogramBucket type
+            format="vec4<u32>"
             resolution={1}
             label="histogram"
           />,
@@ -112,8 +114,13 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
             height={1}
             depth={1}
           />,
+          <TextureBuffer
+            key="5"
+            format="rgba32float"
+          />
         ]}
-        then={([xforms, histogram, histogram_max, point_history ]: StorageTarget[]) => {
+        then={([xforms, histogram, histogram_max, point_history, texture ]: StorageTarget[]) => {
+          console.log(texture);
           return <>
             <Compute>
               <Suspense>
@@ -155,11 +162,18 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
                     }}
                   />
                 </Stage>
+                <Stage target={texture}>
+                  <Kernel
+                    initial
+                    sources={[histogram, histogram_max]}
+                    shader={renderHistogram}
+                  />
+                </Stage>
               </Suspense>
             </Compute>
             <FlatCamera>
               <Pass>
-                <DebugField field={histogram} max={histogram_max} />
+                <DebugField texture={texture} />
               </Pass>
             </FlatCamera>
           </>;
@@ -170,26 +184,20 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
 };
 
 const debugShader = wgsl`
-  @link fn getSample(i: u32) -> u32 {};
-  @link fn getSize() -> vec4<u32> {};
-  @link fn getMax() -> u32 {};
+  @link var texture: texture_2d<f32>;
 
   fn main(uv: vec2<f32>) -> vec4<f32> {
-    let size = getSize();
-    // correct for aspect ratio
-    let iuv = vec2<u32>(uv * vec2<f32>(size.xy));
-    let i = iuv.x + iuv.y * size.x;
+    let size = vec2<f32>(textureDimensions(texture));
 
-    let sample = getSample(i);
-    let max = getMax();
-    let value = log(f32(sample)) / log(f32(max));
-    return vec4<f32>(value, value, value, 1.0);
+    let color = textureLoad(texture, vec2<i32>(uv * size), 0);
+
+    return color;
   }
 `;
 
-const DebugField = ({ field, max }: { field: StorageTarget, max: StorageTarget }) => {
-  const boundShader = useShader(debugShader, [field, () => field.size, max]);
-  const textureSource = useLambdaSource(boundShader, field);
+const DebugField = ({ texture }: { texture: StorageTarget }) => {
+  const boundShader = useShader(debugShader, [texture]);
+  const textureSource = useLambdaSource(boundShader, texture);
   return (
     <RawFullScreen texture={textureSource} />
   );

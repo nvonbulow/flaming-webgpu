@@ -1,5 +1,5 @@
 use '@use-gpu/wgsl/use/array'::{ sizeToModulus2, packIndex2 };
-use './types'::{ XForm, Flame, Histogram };
+use './types'::{ XForm, Flame, Histogram, HistogramBucket };
 use './random'::{ seed, rand, frand, hash };
 
 @link fn getSize() -> vec2<u32> {}
@@ -8,9 +8,9 @@ use './random'::{ seed, rand, frand, hash };
 @link var<storage, read_write> histogram: Histogram;
 @link var<storage, read_write> point_history: array<vec3<f32>>;
 
-const RANGE_X: vec2<f32> = vec2<f32>(-0.75, 0.75);
+const RANGE_X: vec2<f32> = vec2<f32>(-1.0, 1.0);
 // make sure the aspect ratio is the same as the histogram
-const RANGE_Y: vec2<f32> = vec2<f32>(-1.0, 1.0);
+const RANGE_Y: vec2<f32> = vec2<f32>(-1.33, 1.33);
 const NUM_XFORMS: u32 = 3;
 const HISTOGRAM_SIZE: vec2<u32> = vec2<u32>(800, 600);
 
@@ -32,6 +32,20 @@ fn scalePoint(p: vec2<f32>) -> vec2<i32> {
   return vec2<i32>(round(scaled).xy);
 }
 
+fn sample_cmap(c: f32) -> vec3<f32> {
+  // interpolate between <r, g, b> colors
+  // 0 -> red, 0.5 -> green, 1 -> blue
+  let r = vec3<f32>(1.0, 0.0, 0.0);
+  let g = vec3<f32>(0.0, 1.0, 0.0);
+  let b = vec3<f32>(0.0, 0.0, 1.0);
+
+  if c < 0.5 {
+    return mix(r, g, c * 2.0);
+  } else {
+    return mix(g, b, (c - 0.5) * 2.0);
+  }
+}
+
 fn plot(p: vec3<f32>) {
   // scaled point
   let ps = vec2<i32>(scalePoint(p.xy));
@@ -41,7 +55,11 @@ fn plot(p: vec3<f32>) {
   if ps.x < 0 || ps.y < 0 || ps.x >= i32(size.x) || ps.y >= i32(size.y) {
     offset = u32(0);
   }
-  atomicAdd(&histogram.bins[offset], 1);
+  let color = sample_cmap(p.z);
+  atomicAdd(&histogram.bins[offset].count, 1);
+  atomicAdd(&histogram.bins[offset].r, u32(round(color.r * 255.0)));
+  atomicAdd(&histogram.bins[offset].g, u32(round(color.g * 255.0)));
+  atomicAdd(&histogram.bins[offset].b, u32(round(color.b * 255.0)));
 }
 
 fn apply_xform(xform: XForm, p: vec3<f32>) -> vec3<f32> {

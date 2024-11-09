@@ -15,11 +15,27 @@
   xforms: array<XForm>,
 };
 
+@export struct HistogramBucket {
+  // atomic<float> is not supported
+  r: atomic<u32>,
+  g: atomic<u32>,
+  b: atomic<u32>,
+  count: atomic<u32>,
+};
+
 @export struct Histogram {
-  bins: array<atomic<u32>>,
+  // rgba = rgb, count
+  bins: array<HistogramBucket>,
+};
+
+@export struct HistogramBucketInput {
+  r: u32,
+  g: u32,
+  b: u32,
+  count: u32,
 };
 
 @export struct HistogramInput {
-  bins: array<u32>,
+  bins: array<HistogramBucketInput>,
 };
 

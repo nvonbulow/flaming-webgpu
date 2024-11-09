@@ -1,4 +1,4 @@
-use './types'::{ XForm, Flame, HistogramInput };
+use './types'::{ XForm, Flame, HistogramInput, HistogramBucketInput };
 
 @link fn getSize() -> vec2<u32> {}
 
@@ -21,7 +21,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
   var max: u32 = 0;
   for (var i = startIdx; i < endIdx; i += 1) {
-    let val = histogram.bins[i];
+    let val = histogram.bins[i].count;
     if (val > max) {
       max = val;
     }
