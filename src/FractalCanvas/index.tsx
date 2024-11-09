@@ -99,7 +99,11 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
       <Gather
         children={[
           // xforms
-          <XFormData key="1" />,
+          <Sierpinski
+            key="1"
+            // centered on 0,0
+            points={[[0.0, 1.0], [0.866, -0.5], [-0.866, -0.5]]}
+          />,
           // histogram
           <ComputeBuffer
             key="2"
@@ -115,12 +119,20 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
             height={1}
             depth={1}
           />,
+          <ComputeBuffer
+            key="4"
+            format="vec3<f32>"
+            label="point_history"
+            width={500000}
+            height={1}
+            depth={1}
+          />,
         ]}
-        then={([xforms, histogram, histogram_max ]: StorageTarget[]) => {
+        then={([xforms, histogram, histogram_max, point_history ]: StorageTarget[]) => {
           return <>
             <Compute>
               <Suspense>
-                <Stage target={histogram}>
+                <Stage targets={[histogram, point_history]}>
                   <Kernel
                     initial
                     source={xforms}
@@ -132,6 +144,13 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
                     source={histogram}
                     then={(data) => {
                       console.log('histogram', data);
+                      return null;
+                    }}
+                  />
+                  <Readback
+                    source={point_history}
+                    then={(data) => {
+                      console.log('point history', data);
                       return null;
                     }}
                   />
@@ -183,44 +202,30 @@ const Camera: LC<CameraProps> = (props: CameraProps) => (
     }</PanControls>
 );
 
-const XFormData: LC = () => {
+const Sierpinski: LC<{ points: number[][] }> = ({ points }) => {
   // serpinski triangle
   const data: XForm[] = [
     {
       variation_id: 0,
-      affine: [0.5, 0.0, 0.0,
-        0.5, 0.0, 0.0],
+      affine: [0.5, 0.0, 0.5 * points[0][0],
+        0.0, 0.5, 0.5 * points[0][1],
+        0.0, 0.0, 1.0],
       color: 0,
       weight: 1,
     },
     {
       variation_id: 0,
-      affine: [0.5, 0.0, 0.5,
-        0.5, 0.0, 0.0],
+      affine: [0.5, 0.0, 0.5 * points[1][0],
+        0.0, 0.5, 0.5 * points[1][1],
+        0.0, 0.0, 1.0],
       color: 0,
       weight: 1,
     },
     {
       variation_id: 0,
-      affine: [0.5, 0.0, 0.5,
-        0.5, 0.0, 0.5],
-      color: 0,
-      weight: 1,
-    },
-  ];
-
-  const _data = [
-    {
-      variation_id: 0,
-      affine: [0.42, 0.50, 0.21,
-        0.0, -0.33, -0.50],
-      color: 0,
-      weight: 1,
-    },
-    {
-      variation_id: 0,
-      affine: [0.47, 0.0, -0.40,
-        0.58, 0.50, -0.01],
+      affine: [0.5, 0.0, 0.5 * points[2][0],
+        0.0, 0.5, 0.5 * points[2][1],
+        0.0, 0.0, 1.0],
       color: 0,
       weight: 1,
     },

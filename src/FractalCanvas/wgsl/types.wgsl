@@ -6,7 +6,7 @@
     [d, e, f]
     [0, 0, 1]
   */
-  affine: mat3x2<f32>,
+  affine: mat3x3<f32>,
   weight: f32,
 };
 

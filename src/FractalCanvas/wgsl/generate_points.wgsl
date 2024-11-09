@@ -6,6 +6,7 @@ use './random'::{ seed, rand, frand, hash };
 @link var<storage> xforms: array<XForm>;
 
 @link var<storage, read_write> histogram: Histogram;
+@link var<storage, read_write> point_history: array<vec3<f32>>;
 
 const RANGE_X: vec2<f32> = vec2<f32>(-1.0, 1.0);
 const RANGE_Y: vec2<f32> = vec2<f32>(-1.0, 1.0);
@@ -43,39 +44,54 @@ fn plot(p: vec3<f32>) {
 }
 
 fn apply_xform(xform: XForm, p: vec3<f32>) -> vec3<f32> {
-  let T = mat3x3<f32>(
-    vec3f(xform.affine[0], 0.0),
-    vec3f(xform.affine[1], 0.0),
-    vec3f(xform.affine[2], 1.0),
-  );
+  let T = xform.affine;
+  // let T = mat3x3<f32>(
+  //   1.0, 0.0, 0.5,
+  //   0.0, 1.0, -0.5,
+  //   0.0, 0.0, 1.0,
+  // );
   let pt = vec3<f32>(p.xy, 1.0) * T;
+  // let pt = p;
   // todo: color blending
   return vec3<f32>(pt.xy, p.z);
 }
 
+var<private> point_count: u32 = 0;
 fn next(p: vec3<f32>) -> vec3<f32> {
-  let xform = xforms[rand() % NUM_XFORMS - 1];
+  let xform_idx = rand() % NUM_XFORMS;
+  let xform = xforms[u32(xform_idx)];
   let pt = apply_xform(xform, p);
+  // let pt = p;
+  if (point_count < 500000) {
+    point_history[point_count] = vec3<f32>(pt.xy, f32(xform_idx));
+    point_count += 1;
+  }
   return pt;
 }
 
+
 @compute @workgroup_size(1)
 fn main(@builtin(global_invocation_id) globalId: vec3<u32>) {
+  // only allow one thread to run for debugging
+  if (globalId.x != 0 || globalId.y != 0) {
+    return;
+  }
   // unused but needed for linker
   let s = getSize();
 
   let size = HISTOGRAM_SIZE;
   
-  seed(hash(globalId.x * size.y + globalId.y));
+  // seed(hash(globalId.x * size.y + globalId.y));
+  seed(3934749);
 
   // IMPORTANT!!: z is the color of the point
   var p = vec3<f32>((frand() - 0.5) * 2, (frand() - 0.5) * 2, 0.0);
   // var p = vec3<f32>(0.0, 0.0, 0.0);
   // skip first 15 iterations
-  for (var i = 0u; i < 15u; i += 1u) {
+  for (var i = 0u; i < 1u; i += 1u) {
     p = next(p);
   }
-  for (var i = 0u; i < 100000u; i += 1u) {
+  for (var i = 0u; i < 1000000u; i += 1u) {
     plot(p);
     p = next(p);
   }
