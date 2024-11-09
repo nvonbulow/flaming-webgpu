@@ -11,7 +11,6 @@ use './random'::{ seed, rand, frand, hash };
 const RANGE_X: vec2<f32> = vec2<f32>(-2.5, 2.5);
 // make sure the aspect ratio is the same as the histogram
 const RANGE_Y: vec2<f32> = vec2<f32>(-0.2, 10.0);
-const NUM_XFORMS: u32 = 4;
 const HISTOGRAM_SIZE: vec2<u32> = vec2<u32>(800, 600);
 
 fn scaleMatrix() -> mat3x3<f32> {
@@ -84,15 +83,13 @@ fn apply_xform(xform: XForm, p: vec3<f32>) -> vec3<f32> {
 }
 
 fn rand_xform() -> XForm {
-  // let xform_idx = rand() % NUM_XFORMS;
-  // return xforms[u32(xform_idx)];
-
   // For now, assume weights have been normalized
   let r = frand();
   var sum = 0.0;
   var i = 0u;
 
-  for (; i < NUM_XFORMS; i += 1u) {
+  let count = arrayLength(&xforms);
+  for (; i < count; i += 1u) {
     let xform = xforms[i];
     sum += xform.weight;
     if r < sum {
