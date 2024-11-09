@@ -22,6 +22,7 @@ interface XForm {
   variation_id: number;
   affine: number[]; // length 6
   color: number; // index into palette
+  speed: number; // blending amount with current color
   weight: number; // weight of this xform
 }
 
@@ -202,6 +203,7 @@ const Sierpinski: LC<{ points: number[][] }> = ({ points }) => {
         0.0, 0.5, 0.5 * points[0][1],
         0.0, 0.0, 1.0],
       color: 0,
+      speed: 0.5,
       weight: 1,
     },
     {
@@ -210,6 +212,7 @@ const Sierpinski: LC<{ points: number[][] }> = ({ points }) => {
         0.0, 0.5, 0.5 * points[1][1],
         0.0, 0.0, 1.0],
       color: 0.5,
+      speed: 0.5,
       weight: 1,
     },
     {
@@ -218,6 +221,7 @@ const Sierpinski: LC<{ points: number[][] }> = ({ points }) => {
         0.0, 0.5, 0.5 * points[2][1],
         0.0, 0.0, 1.0],
       color: 1.0,
+      speed: 0.5,
       weight: 1,
     },
   ];
@@ -242,6 +246,7 @@ const BarnsleyFern: LC = () => {
         0.0, 0.16, 0.0,
         0.0, 0.0, 1.0],
       color: 0,
+      speed: 0.5,
       weight: 0.01,
     },
     // Repeating leaves
@@ -252,6 +257,7 @@ const BarnsleyFern: LC = () => {
         -0.04, 0.85, 1.6,
         0.0, 0.0, 1.0],
       color: 0.5,
+      speed: 0.5,
       weight: 0.85,
     },
     // Main leaf on the left side
@@ -262,6 +268,7 @@ const BarnsleyFern: LC = () => {
         0.23, 0.22, 1.6,
         0.0, 0.0, 1.0],
       color: 1.0,
+      speed: 0.5,
       weight: 0.07,
     },
     // Main leaf on the right side
@@ -272,6 +279,7 @@ const BarnsleyFern: LC = () => {
         0.26, 0.24, 0.44,
         0.0, 0.0, 1.0],
       color: 1.0,
+      speed: 0.5,
       weight: 0.07,
     },
   ];

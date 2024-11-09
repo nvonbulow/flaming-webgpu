@@ -1,12 +1,13 @@
 @export struct XForm {
   variation_id: u32,
-  color: f32,
   /*
     [a, b, c]
     [d, e, f]
     [0, 0, 1]
   */
   affine: mat3x3<f32>,
+  color: f32,
+  speed: f32,
   weight: f32,
 };
 

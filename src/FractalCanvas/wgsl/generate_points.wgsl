@@ -72,13 +72,11 @@ fn plot(p: vec3<f32>) {
   atomicAdd(&histogram.bins[offset].b, u32(round(color.b * 255.0)));
 }
 
-const COLOR_SPEED: f32 = 0.5;
-
 fn apply_xform(xform: XForm, p: vec3<f32>) -> vec3<f32> {
   let T = xform.affine;
   let pt = vec3<f32>(p.xy, 1.0) * T;
   let color = p.z;
-  let c = mix(color, xform.color, COLOR_SPEED);
+  let c = mix(color, xform.color, xform.speed);
   return vec3<f32>(pt.xy, c);
 }
 
