@@ -8,7 +8,8 @@ use './random'::{ seed, rand, frand, hash };
 @link var<storage, read_write> histogram: Histogram;
 @link var<storage, read_write> point_history: array<vec3<f32>>;
 
-const RANGE_X: vec2<f32> = vec2<f32>(-1.0, 1.0);
+const RANGE_X: vec2<f32> = vec2<f32>(-0.75, 0.75);
+// make sure the aspect ratio is the same as the histogram
 const RANGE_Y: vec2<f32> = vec2<f32>(-1.0, 1.0);
 const NUM_XFORMS: u32 = 3;
 const HISTOGRAM_SIZE: vec2<u32> = vec2<u32>(800, 600);
@@ -36,7 +37,7 @@ fn plot(p: vec3<f32>) {
   let ps = vec2<i32>(scalePoint(p.xy));
 
   let size = HISTOGRAM_SIZE;
-  var offset = u32(ps.x) * size.y + u32(ps.y);
+  var offset = u32(ps.y) * size.x + u32(ps.x);
   if ps.x < 0 || ps.y < 0 || ps.x >= i32(size.x) || ps.y >= i32(size.y) {
     offset = u32(0);
   }
@@ -45,11 +46,6 @@ fn plot(p: vec3<f32>) {
 
 fn apply_xform(xform: XForm, p: vec3<f32>) -> vec3<f32> {
   let T = xform.affine;
-  // let T = mat3x3<f32>(
-  //   1.0, 0.0, 0.5,
-  //   0.0, 1.0, -0.5,
-  //   0.0, 0.0, 1.0,
-  // );
   let pt = vec3<f32>(p.xy, 1.0) * T;
   // let pt = p;
   // todo: color blending

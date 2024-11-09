@@ -74,22 +74,7 @@ const LiveApp: LC<PropsWithChildren<FractalCanvasProps>> = ({ canvas, children }
   );
 };
 
-const debugShader = wgsl`
-  @link fn getSample(i: u32) -> u32 {};
-  @link fn getSize() -> vec4<u32> {};
-  @link fn getMax() -> u32 {};
 
-  fn main(uv: vec2<f32>) -> vec4<f32> {
-    let size = getSize();
-    let iuv = vec2<u32>(uv * vec2<f32>(size.xy));
-    let i = iuv.x + iuv.y * size.x;
-
-    let sample = getSample(i);
-    let max = getMax();
-    let value = log(f32(sample)) / log(f32(max));
-    return vec4<f32>(value, value, value, 1.0);
-  }
-`;
 
 
 export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
@@ -102,7 +87,7 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
           <Sierpinski
             key="1"
             // centered on 0,0
-            points={[[0.0, 1.0], [0.866, -0.5], [-0.866, -0.5]]}
+            points={[[0.0, 1.0], [0.5, -.866], [-0.5, -.866]]}
           />,
           // histogram
           <ComputeBuffer
@@ -183,6 +168,24 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
     </LiveApp>
   );
 };
+
+const debugShader = wgsl`
+  @link fn getSample(i: u32) -> u32 {};
+  @link fn getSize() -> vec4<u32> {};
+  @link fn getMax() -> u32 {};
+
+  fn main(uv: vec2<f32>) -> vec4<f32> {
+    let size = getSize();
+    // correct for aspect ratio
+    let iuv = vec2<u32>(uv * vec2<f32>(size.xy));
+    let i = iuv.x + iuv.y * size.x;
+
+    let sample = getSample(i);
+    let max = getMax();
+    let value = log(f32(sample)) / log(f32(max));
+    return vec4<f32>(value, value, value, 1.0);
+  }
+`;
 
 const DebugField = ({ field, max }: { field: StorageTarget, max: StorageTarget }) => {
   const boundShader = useShader(debugShader, [field, () => field.size, max]);
