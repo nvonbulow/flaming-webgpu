@@ -2,7 +2,7 @@ import React, { Gather, type LC, type PropsWithChildren, useFiber } from '@use-g
 
 import { HTML } from '@use-gpu/react';
 import { Canvas, DOMEvents, WebGPU } from '@use-gpu/webgpu';
-import { DebugProvider, FontLoader, FlatCamera, CursorProvider, PickingTarget, PanControls, LinearRGB, ComputeBuffer, Compute, Suspense, Stage, Kernel, useShader, useLambdaSource, RawFullScreen, StructData, Readback, Pass, TextureBuffer, Loop, useAnimationFrame } from '@use-gpu/workbench';
+import { DebugProvider, FontLoader, FlatCamera, CursorProvider, PickingTarget, PanControls, LinearRGB, ComputeBuffer, Compute, Suspense, Stage, Kernel, useShader, useLambdaSource, RawFullScreen, StructData, Readback, Pass, TextureBuffer, Loop, useAnimationFrame, useRenderContext } from '@use-gpu/workbench';
 import { StorageTarget } from '@use-gpu/core';
 
 import { wgsl } from '@use-gpu/shader/wgsl';
@@ -76,10 +76,18 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
 
 const FractalCanvasInternal: LC = () => {
   const { timestamp } = useAnimationFrame();
+  const { width, height } = useRenderContext();
   const rand_seed = timestamp;
-  const histogram_dim = [800, 600];
-  const x_range = [-2.5, 2.5];
-  const y_range = [-0.2, 10.0];
+  const histogram_dim = [width, height];
+  const x_range = [-7, 7];
+  const y_begin = -0.2;
+  // calculate y_end based on aspect ratio
+  const aspect_ratio = histogram_dim[0] / histogram_dim[1];
+  const y_end = y_begin + (x_range[1] - x_range[0]) / aspect_ratio;
+  const y_range = [y_begin, y_end];
+  // const y_range = [-0.2, 10.0];
+  const batch_size = 1000;
+  const parallelism = 1024;
   return (
     <>
       <Gather
@@ -129,9 +137,10 @@ const FractalCanvasInternal: LC = () => {
                       histogram_dim,
                       x_range,
                       y_range,
+                      batch_size,
                     ]}
                     // number of threads
-                    size={[64]}
+                    size={[parallelism]}
                   />
                 </Stage>
                 <Stage target={histogram_max}>

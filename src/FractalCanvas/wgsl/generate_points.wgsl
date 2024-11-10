@@ -10,6 +10,7 @@ use './random'::{ seed, rand, frand, hash };
 @link fn getHistogramSize() -> vec2<u32> {}
 @link fn getXRange() -> vec2<f32> {}
 @link fn getYRange() -> vec2<f32> {}
+@link fn getBatchSize() -> u32 {}
 @link var<storage> xforms: array<XForm>;
 
 @link var<storage, read_write> histogram: Histogram;
@@ -114,13 +115,14 @@ fn main(@builtin(global_invocation_id) globalId: vec3<u32>) {
 
   seed(hash(globalId.x + 1u) ^ hash(getSeed()));
 
+  // Choose a random starting point in the range [-1, 1]
   var p = vec3<f32>((frand() - 0.5) * 2, (frand() - 0.5) * 2, 0.0);
-  // skip first 15 iterations
-  for (var i = 0u; i < 20u; i += 1u) {
+
+  // skip first 15 iterations to allow for convergence
+  for (var i = 0u; i < 15u; i += 1u) {
     p = next(p);
   }
-  // todo: pull this out into batch size
-  for (var i = 0u; i < 10000u; i += 1u) {
+  for (var i = 0u; i < getBatchSize(); i += 1u) {
     plot(p);
     p = next(p);
   }

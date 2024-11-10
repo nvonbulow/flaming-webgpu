@@ -11,8 +11,8 @@ export const App = () => {
       <div>
         <LiveCanvas>
           {(canvas) => {
-            canvas.width = 800;
-            canvas.height = 600;
+            canvas.width = 1200;
+            canvas.height = 800;
             return <FractalCanvas canvas={canvas} />;
           }}
         </LiveCanvas>
