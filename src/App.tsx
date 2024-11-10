@@ -19,7 +19,7 @@ const RenderControls = () => {
 const iterationOptions: IterationOptions = {
   width: 800,
   height: 600,
-  supersample: 1,
+  supersample: 2,
   x_range: [-7, 7],
   y_range: [-0.2, 10.0],
   batch_size: 10000,

@@ -14,6 +14,7 @@ import '@use-gpu/inspect/theme.css';
 import { makeFallback } from './Fallback';
 
 import { main as generatePoints } from './wgsl/generate_points.wgsl';
+import { main as downsampleHistogram } from './wgsl/histogram_supersample.wgsl';
 import { main as histogramMax } from './wgsl/histogram_max.wgsl';
 import { main as renderHistogram } from './wgsl/histogram_render.wgsl';
 import { XForm as GpuXForm } from './wgsl/types.wgsl';
@@ -104,6 +105,15 @@ const FractalCanvasInternal: LC<FractalCanvasInternalProps> = ({
             width={iterationOptions.width * iterationOptions.supersample}
             height={iterationOptions.height * iterationOptions.supersample}
           />,
+          // downsampled histogram
+          <ComputeBuffer
+            key="downsampled_histogram"
+            label="downsampled_histogram"
+            // HistogramBucket type
+            format="vec4<u32>"
+            width={iterationOptions.width}
+            height={iterationOptions.height}
+          />,
           <ComputeBuffer
             key="histogram_max"
             format="u32"
@@ -125,7 +135,7 @@ const FractalCanvasInternal: LC<FractalCanvasInternalProps> = ({
             height={iterationOptions.height}
           />,
         ]}
-        then={([xforms, histogram, histogram_max, texture, textureBuf]: StorageTarget[]) => {
+        then={([xforms, histogram, downsampled_histogram, histogram_max, texture, textureBuf]: StorageTarget[]) => {
           return <>
             <Compute>
               <Suspense>
@@ -135,7 +145,7 @@ const FractalCanvasInternal: LC<FractalCanvasInternalProps> = ({
                     shader={generatePoints}
                     args={[
                       rand_seed,
-                      [iterationOptions.width, iterationOptions.height],
+                      [iterationOptions.width * iterationOptions.supersample, iterationOptions.height * iterationOptions.supersample],
                       iterationOptions.x_range,
                       iterationOptions.y_range,
                       iterationOptions.batch_size,
@@ -144,9 +154,17 @@ const FractalCanvasInternal: LC<FractalCanvasInternalProps> = ({
                     size={[iterationOptions.parallelism]}
                   />
                 </Stage>
-                <Stage target={histogram_max}>
+                <Stage target={downsampled_histogram}>
                   <Kernel
                     source={histogram}
+                    shader={downsampleHistogram}
+                    size={downsampled_histogram.size}
+                    args={[iterationOptions.supersample]}
+                  />
+                </Stage>
+                <Stage target={histogram_max}>
+                  <Kernel
+                    source={downsampled_histogram}
                     shader={histogramMax}
                     // 64 threads
                     size={[iterationOptions.parallelism]}
@@ -155,11 +173,12 @@ const FractalCanvasInternal: LC<FractalCanvasInternalProps> = ({
                 </Stage>
                 <Stage targets={[texture, textureBuf]}>
                   <Kernel
-                    sources={[histogram, histogram_max]}
+                    sources={[downsampled_histogram, histogram_max]}
                     shader={renderHistogram}
                     args={[
                       postProcessOptions.gamma,
                     ]}
+                    size={texture.size}
                   />
                   {/*
                   <Readback
