@@ -1,6 +1,10 @@
 use './types'::{ XForm, Flame, HistogramInput, HistogramBucketInput };
 
+// unused
 @link fn getSize() -> vec2<u32> {}
+
+// args
+@link fn getHistogramSize() -> vec2<u32> {}
 
 @link var<storage, read_write> histogram: HistogramInput;
 
@@ -10,7 +14,7 @@ use './types'::{ XForm, Flame, HistogramInput, HistogramBucketInput };
 // todo: run more groups to fill up the GPU
 @compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-  let size = getSize();
+  let size = getHistogramSize();
   let count = size.x * size.y;
 
   let startRow = gid.x * size.y / 64;

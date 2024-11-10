@@ -1,7 +1,7 @@
 import React, { Gather, type LC, type PropsWithChildren, useFiber } from '@use-gpu/live';
 
 import { HTML } from '@use-gpu/react';
-import { Canvas, DOMEvents, WebGPU } from '@use-gpu/webgpu';
+import { Canvas, DOMEvents, FPSCounter, WebGPU } from '@use-gpu/webgpu';
 import { DebugProvider, FontLoader, FlatCamera, CursorProvider, PickingTarget, PanControls, LinearRGB, ComputeBuffer, Compute, Suspense, Stage, Kernel, useShader, useLambdaSource, RawFullScreen, StructData, Readback, Pass, TextureBuffer, Loop, useAnimationFrame, useRenderContext } from '@use-gpu/workbench';
 import { StorageTarget } from '@use-gpu/core';
 
@@ -67,6 +67,7 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
                 </DOMEvents>
               </PickingTarget>
             </LinearRGB>
+            <FPSCounter container={canvas} top={30} />
           </Loop>
         </Canvas>
       </WebGPU>
@@ -86,8 +87,8 @@ const FractalCanvasInternal: LC = () => {
   const y_end = y_begin + (x_range[1] - x_range[0]) / aspect_ratio;
   const y_range = [y_begin, y_end];
   // const y_range = [-0.2, 10.0];
-  const batch_size = 1000;
-  const parallelism = 1024;
+  const batch_size = 10000;
+  const parallelism = 64;
 
   const gamma = 10.0;
 
@@ -150,7 +151,9 @@ const FractalCanvasInternal: LC = () => {
                   <Kernel
                     source={histogram}
                     shader={histogramMax}
-                    size={histogram.size}
+                    // 64 threads
+                    size={[64]}
+                    args={[histogram.size]}
                   />
                 </Stage>
                 <Stage targets={[texture, textureBuf]}>
