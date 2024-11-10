@@ -77,28 +77,20 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
 const FractalCanvasInternal: LC = () => {
   const { timestamp } = useAnimationFrame();
   const rand_seed = timestamp;
+  const histogram_dim = [800, 600];
+  const x_range = [-2.5, 2.5];
+  const y_range = [-0.2, 10.0];
   return (
     <>
       <Gather
         children={[
           // xforms
           // <Sierpinski
-          //   key="1"
+          //   key="xforms"
           //   // centered on 0,0
           //   points={[[0.0, 1.0], [0.5, -.866], [-0.5, -.866]]}
           // />,
-          <BarnsleyFern key="1" />,
-          <StructData
-            key="render_options"
-            format="T"
-            type={RenderOptions}
-            data={[{
-              dimensions: [800, 600],
-              // todo: make sure the aspect ratio is the same as the histogram
-              range_x: [-2.5, 2.5],
-              range_y: [-0.2, 10.0],
-            }]}
-          />,
+          <BarnsleyFern key="xforms" />,
           // histogram
           <ComputeBuffer
             key="histogram"
@@ -124,16 +116,19 @@ const FractalCanvasInternal: LC = () => {
             format="vec4<f32>"
           />,
         ]}
-        then={([xforms, render_options, histogram, histogram_max, texture, textureBuf]: StorageTarget[]) => {
+        then={([xforms, histogram, histogram_max, texture, textureBuf]: StorageTarget[]) => {
           return <>
             <Compute>
               <Suspense>
                 <Stage targets={[histogram]}>
                   <Kernel
-                    sources={[render_options, xforms]}
+                    sources={[xforms]}
                     shader={generatePoints}
                     args={[
                       rand_seed,
+                      histogram_dim,
+                      x_range,
+                      y_range,
                     ]}
                     // number of threads
                     size={[64]}
@@ -215,7 +210,7 @@ const Sierpinski: LC<{ points: number[][] }> = ({ points }) => {
         0.0, 0.0, 1.0],
       color: 0,
       speed: 0.5,
-      weight: 1,
+      weight: 1/3,
     },
     {
       variation_id: 0,
@@ -224,7 +219,7 @@ const Sierpinski: LC<{ points: number[][] }> = ({ points }) => {
         0.0, 0.0, 1.0],
       color: 0.5,
       speed: 0.5,
-      weight: 1,
+      weight: 1/3,
     },
     {
       variation_id: 0,
@@ -233,7 +228,7 @@ const Sierpinski: LC<{ points: number[][] }> = ({ points }) => {
         0.0, 0.0, 1.0],
       color: 1.0,
       speed: 0.5,
-      weight: 1,
+      weight: 1/3,
     },
   ];
 
@@ -268,7 +263,7 @@ const BarnsleyFern: LC = () => {
         -0.04, 0.85, 1.6,
         0.0, 0.0, 1.0],
       color: 0.5,
-      speed: 0.5,
+      speed: 0.2,
       weight: 0.85,
     },
     // Main leaf on the left side
