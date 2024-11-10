@@ -1,7 +1,7 @@
 import React, { Gather, type LC, type PropsWithChildren, useFiber } from '@use-gpu/live';
 
 import { HTML } from '@use-gpu/react';
-import { Canvas, DOMEvents, FPSCounter, WebGPU } from '@use-gpu/webgpu';
+import { Canvas, DOMEvents, WebGPU } from '@use-gpu/webgpu';
 import { DebugProvider, FontLoader, FlatCamera, CursorProvider, PickingTarget, PanControls, LinearRGB, ComputeBuffer, Compute, Suspense, Stage, Kernel, useShader, useLambdaSource, RawFullScreen, StructData, Pass, TextureBuffer, Loop, useAnimationFrame, useRenderContext } from '@use-gpu/workbench';
 import { StorageTarget } from '@use-gpu/core';
 
@@ -17,7 +17,7 @@ import { main as generatePoints } from './wgsl/generate_points.wgsl';
 import { main as histogramMax } from './wgsl/histogram_max.wgsl';
 import { main as renderHistogram } from './wgsl/histogram_render.wgsl';
 import { XForm as GpuXForm } from './wgsl/types.wgsl';
-import { type XForm } from '~/flame';
+import { IterationOptions, PostProcessingOptions, type XForm } from '~/flame';
 
 const FONTS = [
   {
@@ -30,9 +30,12 @@ const FONTS = [
 
 interface FractalCanvasProps {
   canvas: HTMLCanvasElement;
+  xforms: XForm[];
+  iterationOptions: IterationOptions;
+  postProcessOptions: PostProcessingOptions;
 }
 
-export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
+export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas, ...props }) => {
   const root = document.querySelector('#use-gpu')!;
 
   // This is for the UseInspect inspector only
@@ -54,7 +57,7 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
                 <DOMEvents element={canvas}>
                   <CursorProvider element={canvas}>
                     <FontLoader fonts={FONTS}>
-                      <FractalCanvasInternal />
+                      <FractalCanvasInternal {...props} />
                     </FontLoader>
                   </CursorProvider>
                 </DOMEvents>
@@ -67,41 +70,39 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
   );
 };
 
-const FractalCanvasInternal: LC = () => {
-  const { timestamp } = useAnimationFrame();
-  const { width, height } = useRenderContext();
-  const rand_seed = timestamp;
-  const histogram_dim = [width, height];
-  const x_range = [-7, 7];
-  const y_begin = -0.2;
-  // calculate y_end based on aspect ratio
-  const aspect_ratio = histogram_dim[0] / histogram_dim[1];
-  const y_end = y_begin + (x_range[1] - x_range[0]) / aspect_ratio;
-  const y_range = [y_begin, y_end];
-  // const y_range = [-0.2, 10.0];
-  const batch_size = 10000;
-  const parallelism = 64;
+export interface FractalCanvasInternalProps {
+  xforms: XForm[];
+  iterationOptions: IterationOptions;
+  postProcessOptions: PostProcessingOptions;
+};
 
-  const gamma = 10.0;
+const FractalCanvasInternal: LC<FractalCanvasInternalProps> = ({
+  xforms,
+  iterationOptions,
+  postProcessOptions,
+}) => {
+  const { timestamp } = useAnimationFrame();
+  const rand_seed = timestamp;
 
   return (
     <>
       <Gather
         children={[
           // xforms
-          // <Sierpinski
-          //   key="xforms"
-          //   // centered on 0,0
-          //   points={[[0.0, 1.0], [0.5, -.866], [-0.5, -.866]]}
-          // />,
-          <BarnsleyFern key="xforms" />,
+          <StructData
+            key="xforms"
+            format="array<T>"
+            type={GpuXForm}
+            data={xforms}
+          />,
           // histogram
           <ComputeBuffer
             key="histogram"
+            label="histogram"
             // HistogramBucket type
             format="vec4<u32>"
-            resolution={1}
-            label="histogram"
+            width={iterationOptions.width * iterationOptions.supersample}
+            height={iterationOptions.height * iterationOptions.supersample}
           />,
           <ComputeBuffer
             key="histogram_max"
@@ -114,10 +115,14 @@ const FractalCanvasInternal: LC = () => {
           <TextureBuffer
             key="texture"
             format="rgba32float"
+            width={iterationOptions.width}
+            height={iterationOptions.height}
           />,
           <ComputeBuffer
             key="textureBuf"
             format="vec4<f32>"
+            width={iterationOptions.width}
+            height={iterationOptions.height}
           />,
         ]}
         then={([xforms, histogram, histogram_max, texture, textureBuf]: StorageTarget[]) => {
@@ -130,13 +135,13 @@ const FractalCanvasInternal: LC = () => {
                     shader={generatePoints}
                     args={[
                       rand_seed,
-                      histogram_dim,
-                      x_range,
-                      y_range,
-                      batch_size,
+                      [iterationOptions.width, iterationOptions.height],
+                      iterationOptions.x_range,
+                      iterationOptions.y_range,
+                      iterationOptions.batch_size,
                     ]}
                     // number of threads
-                    size={[parallelism]}
+                    size={[iterationOptions.parallelism]}
                   />
                 </Stage>
                 <Stage target={histogram_max}>
@@ -144,7 +149,7 @@ const FractalCanvasInternal: LC = () => {
                     source={histogram}
                     shader={histogramMax}
                     // 64 threads
-                    size={[64]}
+                    size={[iterationOptions.parallelism]}
                     args={[histogram.size]}
                   />
                 </Stage>
@@ -153,7 +158,7 @@ const FractalCanvasInternal: LC = () => {
                     sources={[histogram, histogram_max]}
                     shader={renderHistogram}
                     args={[
-                      gamma,
+                      postProcessOptions.gamma,
                     ]}
                   />
                   {/*

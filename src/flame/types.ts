@@ -11,17 +11,25 @@ export const XFormSchema = z.object({
 export type XForm = z.infer<typeof XFormSchema>;
 
 export const IterationOptionsSchema = z.object({
+  // dimensions of the output image
   width: z.number().int().positive(),
   height: z.number().int().positive(),
-  xforms: z.array(XFormSchema),
+  // number of bins per pixel
+  supersample: z.number().int().positive().default(1),
 
+  // ranges in coordinate space covererd by the image
+  x_range: z.array(z.number()).length(2),
+  y_range: z.array(z.number()).length(2),
+
+  // number of iterations to run per thread each batch
   batch_size: z.number().int().positive().default(1000),
+  // number of threads to run in
   parallelism: z.number().int().positive().default(64),
 });
-
 export type IterationOptions = z.infer<typeof IterationOptionsSchema>;
 
 export const PostProcessingOptionsSchema = z.object({
   gamma: z.number().min(0),
 });
+export type PostProcessingOptions = z.infer<typeof PostProcessingOptionsSchema>;
 
