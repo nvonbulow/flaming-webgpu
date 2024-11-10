@@ -2,7 +2,7 @@ import React, { Gather, type LC, type PropsWithChildren, useFiber } from '@use-g
 
 import { HTML } from '@use-gpu/react';
 import { Canvas, DOMEvents, FPSCounter, WebGPU } from '@use-gpu/webgpu';
-import { DebugProvider, FontLoader, FlatCamera, CursorProvider, PickingTarget, PanControls, LinearRGB, ComputeBuffer, Compute, Suspense, Stage, Kernel, useShader, useLambdaSource, RawFullScreen, StructData, Readback, Pass, TextureBuffer, Loop, useAnimationFrame, useRenderContext } from '@use-gpu/workbench';
+import { DebugProvider, FontLoader, FlatCamera, CursorProvider, PickingTarget, PanControls, LinearRGB, ComputeBuffer, Compute, Suspense, Stage, Kernel, useShader, useLambdaSource, RawFullScreen, StructData, Pass, TextureBuffer, Loop, useAnimationFrame, useRenderContext } from '@use-gpu/workbench';
 import { StorageTarget } from '@use-gpu/core';
 
 import { wgsl } from '@use-gpu/shader/wgsl';
@@ -16,15 +16,8 @@ import { makeFallback } from './Fallback';
 import { main as generatePoints } from './wgsl/generate_points.wgsl';
 import { main as histogramMax } from './wgsl/histogram_max.wgsl';
 import { main as renderHistogram } from './wgsl/histogram_render.wgsl';
-import { RenderOptions, XForm } from './wgsl/types.wgsl';
-
-interface XForm {
-  variation_id: number;
-  affine: number[]; // length 6
-  color: number; // index into palette
-  speed: number; // blending amount with current color
-  weight: number; // weight of this xform
-}
+import { XForm as GpuXForm } from './wgsl/types.wgsl';
+import { type XForm } from '~/flame';
 
 const FONTS = [
   {
@@ -67,7 +60,6 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas }) => {
                 </DOMEvents>
               </PickingTarget>
             </LinearRGB>
-            <FPSCounter container={canvas} top={30} />
           </Loop>
         </Canvas>
       </WebGPU>
@@ -253,7 +245,7 @@ const Sierpinski: LC<{ points: number[][] }> = ({ points }) => {
   return (
     <StructData
       format="array<T>"
-      type={XForm}
+      type={GpuXForm}
       data={data}
     />
   );
@@ -311,7 +303,7 @@ const BarnsleyFern: LC = () => {
   return (
     <StructData
       format="array<T>"
-      type={XForm}
+      type={GpuXForm}
       data={data}
     />
   );
