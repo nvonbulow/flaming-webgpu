@@ -88,6 +88,9 @@ const FractalCanvasInternal: LC = () => {
   // const y_range = [-0.2, 10.0];
   const batch_size = 1000;
   const parallelism = 1024;
+
+  const gamma = 10.0;
+
   return (
     <>
       <Gather
@@ -154,6 +157,9 @@ const FractalCanvasInternal: LC = () => {
                   <Kernel
                     sources={[histogram, histogram_max]}
                     shader={renderHistogram}
+                    args={[
+                      gamma,
+                    ]}
                   />
                   {/*
                   <Readback

@@ -2,6 +2,10 @@ use './types'::{ HistogramInput, HistogramBucketInput };
 
 @link fn getSize() -> vec2<u32> {}
 
+// args
+@link fn getGamma() -> f32 {}
+
+// inputs
 @link var<storage> histogram: HistogramInput;
 
 @link var<storage> histogram_max: u32;
@@ -26,8 +30,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
     // Post processing
     // Gamma correction
-    let gamma = 4.0;
-    color = color * pow(log_scale, (1.0 / gamma));
+    color = color * pow(log_scale, (1.0 / getGamma()));
     
     textureStore(texture, vec2<u32>(x, y), vec4<f32>(color, log_scale));
     texture_buf[idx] = vec4<f32>(color, log_scale);
