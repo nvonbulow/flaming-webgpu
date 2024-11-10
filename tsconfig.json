@@ -4,7 +4,11 @@
     "module": "es2015",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "jsx": "react"
+    "jsx": "react",
+    "baseUrl": "./",
+    "paths": {
+      "@styled-system/*": ["styled-system/*"]
+    }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"]
 }
