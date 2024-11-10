@@ -1,9 +1,10 @@
 use '@use-gpu/wgsl/use/array'::{ sizeToModulus2, packIndex2 };
-use './types'::{ XForm, Flame, Histogram, HistogramBucket };
+use './types'::{ XForm, Flame, Histogram, HistogramBucket, RenderOptions };
 use './random'::{ seed, rand, frand, hash };
 
 @link fn getSize() -> vec2<u32> {}
 @link fn getSeed() -> u32 {}
+@link var<storage> render_options: RenderOptions;
 @link var<storage> xforms: array<XForm>;
 
 @link var<storage, read_write> histogram: Histogram;
@@ -11,10 +12,9 @@ use './random'::{ seed, rand, frand, hash };
 const RANGE_X: vec2<f32> = vec2<f32>(-2.5, 2.5);
 // make sure the aspect ratio is the same as the histogram
 const RANGE_Y: vec2<f32> = vec2<f32>(-0.2, 10.0);
-const HISTOGRAM_SIZE: vec2<u32> = vec2<u32>(800, 600);
 
 fn scaleMatrix() -> mat3x3<f32> {
-  let size = HISTOGRAM_SIZE;
+  let size = render_options.dimensions;
   let x_factor = f32(size.x - 1) / (RANGE_X.y - RANGE_X.x);
   let y_factor = f32(size.y - 1) / (RANGE_Y.x - RANGE_Y.y);
 
@@ -60,7 +60,7 @@ fn plot(p: vec3<f32>) {
   // scaled point
   let ps = vec2<i32>(scalePoint(p.xy));
 
-  let size = HISTOGRAM_SIZE;
+  let size = render_options.dimensions;
   var offset = u32(ps.y) * size.x + u32(ps.x);
   if ps.x < 0 || ps.y < 0 || ps.x >= i32(size.x) || ps.y >= i32(size.y) {
     offset = u32(0);
@@ -109,8 +109,6 @@ fn main(@builtin(global_invocation_id) globalId: vec3<u32>) {
   // unused but needed for linker
   let s = getSize();
 
-  let size = HISTOGRAM_SIZE;
-  
   seed(hash(globalId.x + 1u) ^ hash(getSeed()));
 
   var p = vec3<f32>((frand() - 0.5) * 2, (frand() - 0.5) * 2, 0.0);

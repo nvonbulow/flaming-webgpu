@@ -7,3 +7,4 @@ export declare const HistogramBucket: ParsedBundle;
 export declare const Histogram: ParsedBundle;
 export declare const HistogramBucketInput: ParsedBundle;
 export declare const HistogramInput: ParsedBundle;
+export declare const RenderOptions: ParsedBundle;

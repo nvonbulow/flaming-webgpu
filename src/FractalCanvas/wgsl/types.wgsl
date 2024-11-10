@@ -40,3 +40,7 @@
   bins: array<HistogramBucketInput>,
 };
 
+@export struct RenderOptions {
+  dimensions: vec2<u32>,
+};
+

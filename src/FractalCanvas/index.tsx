@@ -16,7 +16,7 @@ import { makeFallback } from './Fallback';
 import { main as generatePoints } from './wgsl/generate_points.wgsl';
 import { main as histogramMax } from './wgsl/histogram_max.wgsl';
 import { main as renderHistogram } from './wgsl/histogram_render.wgsl';
-import { XForm } from './wgsl/types.wgsl';
+import { RenderOptions, XForm } from './wgsl/types.wgsl';
 
 interface XForm {
   variation_id: number;
@@ -88,16 +88,24 @@ const FractalCanvasInternal: LC = () => {
           //   points={[[0.0, 1.0], [0.5, -.866], [-0.5, -.866]]}
           // />,
           <BarnsleyFern key="1" />,
+          <StructData
+            key="render_options"
+            format="T"
+            type={RenderOptions}
+            data={[{
+              dimensions: [800, 600],
+            }]}
+          />,
           // histogram
           <ComputeBuffer
-            key="2"
+            key="histogram"
             // HistogramBucket type
             format="vec4<u32>"
             resolution={1}
             label="histogram"
           />,
           <ComputeBuffer
-            key="3"
+            key="histogram_max"
             format="u32"
             label="histogram_max"
             width={1}
@@ -105,21 +113,21 @@ const FractalCanvasInternal: LC = () => {
             depth={1}
           />,
           <TextureBuffer
-            key="5"
+            key="texture"
             format="rgba32float"
           />,
           <ComputeBuffer
-            key="6"
+            key="textureBuf"
             format="vec4<f32>"
           />,
         ]}
-        then={([xforms, histogram, histogram_max, texture, textureBuf]: StorageTarget[]) => {
+        then={([xforms, render_options, histogram, histogram_max, texture, textureBuf]: StorageTarget[]) => {
           return <>
             <Compute>
               <Suspense>
                 <Stage targets={[histogram]}>
                   <Kernel
-                    source={xforms}
+                    sources={[render_options, xforms]}
                     shader={generatePoints}
                     args={[
                       rand_seed,
