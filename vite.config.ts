@@ -5,12 +5,14 @@ import react from '@vitejs/plugin-react'
 import wasm from "vite-plugin-wasm";
 import topLevelAwait from "vite-plugin-top-level-await";
 import wgslRollup from '@use-gpu/wgsl-loader/rollup';
+import tsconfigPaths from 'vite-tsconfig-paths';
 import path from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   base: '',
   plugins: [
+    tsconfigPaths({ root: './' }),
     wasm(),
     topLevelAwait(),
     react(),
@@ -20,11 +22,6 @@ export default defineConfig({
     // }),
     wgslRollup(),
   ],
-  resolve: {
-    alias: {
-      '@styled-system': path.resolve(__dirname, './styled-system'),
-    },
-  },
   server: {
     port: 8080,
   },

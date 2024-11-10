@@ -13,6 +13,8 @@
   "devDependencies": {
     "@eslint/js": "^9.9.0",
     "@pandacss/dev": "^0.47.1",
+    "@park-ui/cli": "^0.9.0",
+    "@park-ui/panda-preset": "^0.42.0",
     "@types/node": "^18.0.5",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
@@ -31,6 +33,7 @@
     "vite-plugin-wasm": "^3.3.0"
   },
   "dependencies": {
+    "@ark-ui/react": "^4.3.0",
     "@use-gpu/core": "^0.12.0",
     "@use-gpu/inspect": "^0.12.0",
     "@use-gpu/inspect-gpu": "^0.12.0",
@@ -46,7 +49,9 @@
     "@use-gpu/wgsl-loader": "^0.12.0",
     "@use-gpu/workbench": "^0.12.0",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "vite-tsconfig-paths": "^5.1.2",
+    "zod": "^3.23.8"
   },
   "pnpm": {
     "patchedDependencies": {
