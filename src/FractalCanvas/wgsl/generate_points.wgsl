@@ -9,18 +9,16 @@ use './random'::{ seed, rand, frand, hash };
 
 @link var<storage, read_write> histogram: Histogram;
 
-const RANGE_X: vec2<f32> = vec2<f32>(-2.5, 2.5);
-// make sure the aspect ratio is the same as the histogram
-const RANGE_Y: vec2<f32> = vec2<f32>(-0.2, 10.0);
-
 fn scaleMatrix() -> mat3x3<f32> {
   let size = render_options.dimensions;
-  let x_factor = f32(size.x - 1) / (RANGE_X.y - RANGE_X.x);
-  let y_factor = f32(size.y - 1) / (RANGE_Y.x - RANGE_Y.y);
+  let range_x = render_options.range_x;
+  let range_y = render_options.range_y;
+  let x_factor = f32(size.x - 1) / (range_x.y - range_x.x);
+  let y_factor = f32(size.y - 1) / (range_y.x - range_y.y);
 
   return mat3x3<f32>(
-    x_factor,      0.0, -x_factor * RANGE_X.x,
-         0.0, y_factor, -y_factor * RANGE_Y.y,
+    x_factor,      0.0, -x_factor * range_x.x,
+         0.0, y_factor, -y_factor * range_y.y,
          0.0,      0.0,                   1.0,
   );
 }

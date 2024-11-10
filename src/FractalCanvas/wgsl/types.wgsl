@@ -42,5 +42,7 @@
 
 @export struct RenderOptions {
   dimensions: vec2<u32>,
+  range_x: vec2<f32>,
+  range_y: vec2<f32>,
 };
 

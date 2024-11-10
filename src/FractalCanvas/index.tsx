@@ -94,6 +94,9 @@ const FractalCanvasInternal: LC = () => {
             type={RenderOptions}
             data={[{
               dimensions: [800, 600],
+              // todo: make sure the aspect ratio is the same as the histogram
+              range_x: [-2.5, 2.5],
+              range_y: [-0.2, 10.0],
             }]}
           />,
           // histogram
