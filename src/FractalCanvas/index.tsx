@@ -59,6 +59,7 @@ interface FractalCanvasProps {
   iterationOptions: IterationOptions;
   postProcessOptions: PostProcessingOptions;
   live?: boolean;
+  onRenderBatch?: (count: number) => void;
 }
 
 export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas, ...props }) => {

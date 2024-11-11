@@ -43,13 +43,13 @@ export const ComputeLoop: LC<ComputeLoopProps> = memo((props: ComputeLoopProps) 
     setTick(0);
   }
 
-  const childState = typeof children === 'function' ? children(tick, resetCount) : children;
+  const childView = typeof children === 'function' ? children(tick, resetCount) : children;
 
   return (
     reconcile(
       quote(
         gather(
-          unquote(use(Compute, { children: childState })),
+          unquote(use(Compute, { children: childView })),
           (fs: ArrowFunction[]) => {
 
             useMemo(() => {

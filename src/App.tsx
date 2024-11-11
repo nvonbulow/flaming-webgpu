@@ -36,6 +36,7 @@ interface RenderControlsProps {
 
   live: boolean;
   onToggleLive: () => void;
+  batchNumber: number;
 }
 
 const RenderControls: React.FC<RenderControlsProps> = ({
@@ -47,6 +48,7 @@ const RenderControls: React.FC<RenderControlsProps> = ({
   onXformsChange,
   live,
   onToggleLive,
+  batchNumber,
 }) => {
   return (
     <Container spaceY={4}>
@@ -66,6 +68,7 @@ const RenderControls: React.FC<RenderControlsProps> = ({
         >
           Batch Limit
         </NumberInput>
+        <span>Batch: {batchNumber}</span>
       </HStack>
       <HStack>
         <Button onClick={() => {
@@ -277,6 +280,20 @@ export const XFormEditor: React.FC<XFormEditorProps> = ({
         >
           Color: {xform.color}
         </Slider>
+        <Slider
+          min={0.0}
+          max={1.0}
+          step={0.01}
+          value={[xform.speed]}
+          onValueChange={({ value: [value] }) => {
+            onXformChange({
+              ...xform,
+              speed: value,
+            });
+          }}
+        >
+          Speed: {xform.speed}
+        </Slider>
         <HStack gap="4">
           <NumberInput
             value={a.toString()}
@@ -374,6 +391,8 @@ export const App = () => {
 
   const [live, setLive] = useState(true);
 
+  const [batchNumber, setBatchNumber] = useState(0);
+
   return (
     <Container display="flex" py="12" gap="8" justifyContent="center">
       <HStack gap="4">
@@ -387,6 +406,7 @@ export const App = () => {
               iterationOptions={iterationOptions}
               postProcessOptions={postProcessOptions}
               live={live}
+              onRenderBatch={setBatchNumber}
             />;
           }}
         </LiveCanvas>
@@ -400,6 +420,7 @@ export const App = () => {
             onXformsChange={setXforms}
             live={live}
             onToggleLive={() => setLive(!live)}
+            batchNumber={batchNumber}
           />
           {xforms.map((xform, index) => (
             <XFormEditor key={index} xform={xform} onXformChange={(xform) => {

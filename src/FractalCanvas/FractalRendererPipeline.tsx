@@ -17,6 +17,7 @@ export interface FractalRendererProps {
   postProcessOptions: PostProcessingOptions;
   children: (texture: StorageTarget) => LiveElement<any>;
   live?: boolean;
+  onRenderBatch?: (count: number) => void;
 };
 
 export const FractalRendererPipeline: LC<FractalRendererProps> = ({
@@ -25,6 +26,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
   postProcessOptions,
   children,
   live = true,
+  onRenderBatch,
 }) => {
 
   return (
@@ -93,6 +95,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
               batch={1}
               limit={iterationOptions.batch_limit}
               continued
+              then={(tick) => onRenderBatch?.(tick)}
             >
               {(tick, resetCount) => {
                 useResource(() => {
