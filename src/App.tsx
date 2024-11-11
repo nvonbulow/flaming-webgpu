@@ -4,7 +4,7 @@ import { FractalCanvas } from './FractalCanvas';
 import { Container, HStack, Stack, VStack } from 'styled-system/jsx';
 import { Slider } from './components/ui/slider';
 import { IterationOptions, normalizeXForms, PostProcessingOptions, XForm } from './flame';
-import { barnsleyFern } from './flame/generators';
+import { barnsleyFern, sierpinskiTriangle } from './flame/generators';
 import { NumberInput } from './components/ui/number-input';
 import { Button } from './components/ui/button';
 
@@ -42,16 +42,71 @@ const RenderControls: React.FC<RenderControlsProps> = ({
   xforms,
   onXformsChange,
 }) => {
-  const reset = () => {
-    onIterationOptionsChange(defaultIterationOptions());
-    onPostProcessOptionsChange(defaultPostProcessingOptions());
-    onXformsChange(barnsleyFern());
-  };
-
   return (
     <Container width="full">
       <HStack>
-        <Button onClick={reset}>Reset</Button>
+        <Button onClick={() => {
+          onIterationOptionsChange(defaultIterationOptions());
+          onPostProcessOptionsChange(defaultPostProcessingOptions());
+          onXformsChange(barnsleyFern());
+        }}>
+          Barnsley Fern
+        </Button>
+        <Button onClick={() => {
+          onIterationOptionsChange({
+            ...defaultIterationOptions(),
+            x_range: [-0.5, 0.5],
+            y_range: [-0.833, 0.5],
+            width: 800,
+            height: 800,
+          });
+          onPostProcessOptionsChange(defaultPostProcessingOptions());
+          onXformsChange(sierpinskiTriangle([[0, 0.5], [-0.5, -0.833], [0.5, -0.833]]));
+        }}>
+          Sierpinski Triangle
+        </Button>
+      </HStack>
+      <HStack>
+        <NumberInput
+          value={iterationOptions.width.toString()}
+          step={1}
+          allowMouseWheel
+          onValueChange={({ value }) => {
+            onIterationOptionsChange({
+              ...iterationOptions,
+              width: Number(value),
+            });
+          }}
+        >
+          Width
+        </NumberInput>
+        <NumberInput
+          value={iterationOptions.height.toString()}
+          step={1}
+          allowMouseWheel
+          onValueChange={({ value }) => {
+            onIterationOptionsChange({
+              ...iterationOptions,
+              height: Number(value),
+            });
+          }}
+        >
+          Height
+        </NumberInput>
+        <NumberInput
+          value={iterationOptions.supersample.toString()}
+          step={1}
+          min={1}
+          max={4}
+          onValueChange={({ value }) => {
+            onIterationOptionsChange({
+              ...iterationOptions,
+              supersample: Number(value),
+            });
+          }}
+        >
+          Supersample
+        </NumberInput>
       </HStack>
       <HStack>
         <Slider
