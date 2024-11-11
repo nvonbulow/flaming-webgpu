@@ -1,8 +1,8 @@
-import React, { type LC, type PropsWithChildren, useFiber } from '@use-gpu/live';
+import React, { type LC, type PropsWithChildren, Provide, useFiber } from '@use-gpu/live';
 
 import { HTML } from '@use-gpu/react';
 import { Canvas, DOMEvents, WebGPU } from '@use-gpu/webgpu';
-import { DebugProvider, FontLoader, FlatCamera, CursorProvider, PickingTarget, PanControls, LinearRGB, useShader, useLambdaSource, RawFullScreen, StructData, Pass } from '@use-gpu/workbench';
+import { DebugProvider, FontLoader, FlatCamera, CursorProvider, PickingTarget, PanControls, LinearRGB, useShader, useLambdaSource, RawFullScreen, StructData, Pass, RenderContext, Loop } from '@use-gpu/workbench';
 import { StorageTarget } from '@use-gpu/core';
 
 import { wgsl } from '@use-gpu/shader/wgsl';
@@ -13,7 +13,6 @@ import '@use-gpu/inspect/theme.css';
 
 import { makeFallback } from './Fallback';
 
-import { XForm as GpuXForm } from './wgsl/types.wgsl';
 import { IterationOptions, PostProcessingOptions, type XForm } from '~/flame';
 import { FractalRendererPipeline } from './FractalRendererPipeline';
 
@@ -25,6 +24,34 @@ const FONTS = [
     src: '/Lato-Black.ttf',
   },
 ];
+
+interface CanvasSkeletonProps {
+  canvas: HTMLCanvasElement;
+}
+export const CanvasSkeleton: LC<PropsWithChildren<CanvasSkeletonProps>> = ({
+  canvas,
+  children,
+}) => {
+  return (
+    <Canvas
+      canvas={canvas}
+      width={canvas.width}
+      height={canvas.height}
+    >
+      <LinearRGB>
+        <PickingTarget>
+          <DOMEvents element={canvas}>
+            <CursorProvider element={canvas}>
+              <FontLoader fonts={FONTS}>
+                {children}
+              </FontLoader>
+            </CursorProvider>
+          </DOMEvents>
+        </PickingTarget>
+      </LinearRGB>
+    </Canvas>
+  );
+};
 
 interface FractalCanvasProps {
   canvas: HTMLCanvasElement;
@@ -44,31 +71,19 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas, ...props }) => {
       <WebGPU // WebGPU Canvas with a font
         fallback={(error: Error) => <HTML container={root}>{makeFallback(error)}</HTML>}
       >
-        <Canvas
-          canvas={canvas}
-          width={canvas.width}
-          height={canvas.height}
-        >
-          <LinearRGB>
-            <PickingTarget>
-              <DOMEvents element={canvas}>
-                <CursorProvider element={canvas}>
-                  <FontLoader fonts={FONTS}>
-                    <FractalRendererPipeline {...props}>
-                      {(texture: StorageTarget) => (
-                        <FlatCamera>
-                          <Pass>
-                            <DebugField texture={texture} />
-                          </Pass>
-                        </FlatCamera>
-                      )}
-                    </FractalRendererPipeline>
-                  </FontLoader>
-                </CursorProvider>
-              </DOMEvents>
-            </PickingTarget>
-          </LinearRGB>
-        </Canvas>
+        <FractalRendererPipeline {...props}>
+          {(texture: StorageTarget) => (
+            <CanvasSkeleton canvas={canvas} >
+              <Loop live>
+                <FlatCamera>
+                  <Pass>
+                    <DebugField texture={texture} />
+                  </Pass>
+                </FlatCamera>
+              </Loop>
+            </CanvasSkeleton>
+          )}
+        </FractalRendererPipeline>
       </WebGPU>
     </UseInspect>
   );
