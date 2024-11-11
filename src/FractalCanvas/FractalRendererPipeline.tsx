@@ -16,6 +16,7 @@ export interface FractalRendererProps {
   iterationOptions: IterationOptions;
   postProcessOptions: PostProcessingOptions;
   children: (texture: StorageTarget) => LiveElement<any>;
+  live?: boolean;
 };
 
 export const FractalRendererPipeline: LC<FractalRendererProps> = ({
@@ -23,6 +24,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
   iterationOptions,
   postProcessOptions,
   children,
+  live = true,
 }) => {
 
   return (
@@ -85,64 +87,65 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
         ]: StorageTarget[]) => {
 
           const device = useDeviceContext();
-          useResource(() => {
-            clearBuffer(device, histogram.buffer);
-          }, [iterationOptions, xforms]);
           return <>
             <ComputeLoop
-              live
+              live={live}
               batch={1}
-              // limit={100}
+              limit={iterationOptions.batch_limit}
               continued
-            // then={(tick) => ()}
             >
-              {(tick) => (
-                console.log(tick),
-                <Suspense>
-                  <Stage targets={[histogram]}>
-                    <Kernel
-                      sources={[xforms_in]}
-                      shader={generatePoints}
-                      args={[
-                        tick,
-                        [iterationOptions.width * iterationOptions.supersample, iterationOptions.height * iterationOptions.supersample],
-                        iterationOptions.x_range,
-                        iterationOptions.y_range,
-                        iterationOptions.batch_size,
-                      ]}
-                      // number of threads
-                      size={[iterationOptions.parallelism]}
-                    />
-                  </Stage>
-                  <Stage target={downsampled_histogram}>
-                    <Kernel
-                      source={histogram}
-                      shader={downsampleHistogram}
-                      size={downsampled_histogram.size}
-                      args={[iterationOptions.supersample]}
-                    />
-                  </Stage>
-                  <Stage target={histogram_max}>
-                    <Kernel
-                      source={downsampled_histogram}
-                      shader={histogramMax}
-                      // 64 threads
-                      size={[iterationOptions.parallelism]}
-                      args={[histogram.size]}
-                    />
-                  </Stage>
-                  <Stage targets={[texture, textureBuf]}>
-                    <Kernel
-                      sources={[downsampled_histogram, histogram_max]}
-                      shader={renderHistogram}
-                      args={[
-                        postProcessOptions.gamma,
-                      ]}
-                      size={texture.size}
-                    />
-                  </Stage>
-                </Suspense>
-              )}
+              {(tick, resetCount) => {
+                useResource(() => {
+                  clearBuffer(device, histogram.buffer);
+                  resetCount();
+                }, [iterationOptions, postProcessOptions, xforms]);
+                return (
+                  <Suspense>
+                    <Stage targets={[histogram]}>
+                      <Kernel
+                        sources={[xforms_in]}
+                        shader={generatePoints}
+                        args={[
+                          tick,
+                          [iterationOptions.width * iterationOptions.supersample, iterationOptions.height * iterationOptions.supersample],
+                          iterationOptions.x_range,
+                          iterationOptions.y_range,
+                          iterationOptions.batch_size,
+                        ]}
+                        // number of threads
+                        size={[iterationOptions.parallelism]}
+                      />
+                    </Stage>
+                    <Stage target={downsampled_histogram}>
+                      <Kernel
+                        source={histogram}
+                        shader={downsampleHistogram}
+                        size={downsampled_histogram.size}
+                        args={[iterationOptions.supersample]}
+                      />
+                    </Stage>
+                    <Stage target={histogram_max}>
+                      <Kernel
+                        source={downsampled_histogram}
+                        shader={histogramMax}
+                        // 64 threads
+                        size={[iterationOptions.parallelism]}
+                        args={[histogram.size]}
+                      />
+                    </Stage>
+                    <Stage targets={[texture, textureBuf]}>
+                      <Kernel
+                        sources={[downsampled_histogram, histogram_max]}
+                        shader={renderHistogram}
+                        args={[
+                          postProcessOptions.gamma,
+                        ]}
+                        size={texture.size}
+                      />
+                    </Stage>
+                  </Suspense>
+                );
+              }}
             </ComputeLoop>
             {children(texture)}
           </>;

@@ -16,6 +16,7 @@ const defaultIterationOptions = (): IterationOptions => ({
   y_range: [-0.2, 10.0],
   batch_size: 10000,
   parallelism: 64,
+  batch_limit: 100,
 });
 
 const defaultPostProcessingOptions = (): PostProcessingOptions => ({
@@ -32,6 +33,9 @@ interface RenderControlsProps {
   onPostProcessOptionsChange: (options: PostProcessingOptions) => void;
   onIterationOptionsChange: (options: IterationOptions) => void;
   onXformsChange: (xforms: XForm[]) => void;
+
+  live: boolean;
+  onToggleLive: () => void;
 }
 
 const RenderControls: React.FC<RenderControlsProps> = ({
@@ -41,9 +45,28 @@ const RenderControls: React.FC<RenderControlsProps> = ({
   onPostProcessOptionsChange,
   xforms,
   onXformsChange,
+  live,
+  onToggleLive,
 }) => {
   return (
-    <Container width="full">
+    <Container spaceY={4}>
+      <HStack>
+        <Button onClick={onToggleLive}>
+          {live ? 'Pause' : 'Resume'}
+        </Button>
+        <NumberInput
+          value={iterationOptions.batch_limit.toString()}
+          step={5}
+          onValueChange={({ value }) => {
+            onIterationOptionsChange({
+              ...iterationOptions,
+              batch_limit: Number(value),
+            });
+          }}
+        >
+          Batch Limit
+        </NumberInput>
+      </HStack>
       <HStack>
         <Button onClick={() => {
           onIterationOptionsChange(defaultIterationOptions());
@@ -347,12 +370,13 @@ export const App = () => {
   const [iterationOptions, setIterationOptions] = useState(defaultIterationOptions());
   const [postProcessOptions, setPostProcessOptions] = useState(defaultPostProcessingOptions());
   const [xforms, setXforms] = useState(defaultXforms());
-
   const normalizedXforms = useMemo(() => normalizeXForms(xforms), [xforms]);
+
+  const [live, setLive] = useState(true);
 
   return (
     <Container display="flex" py="12" gap="8" justifyContent="center">
-      <Stack gap="4">
+      <HStack gap="4">
         <LiveCanvas>
           {(canvas) => {
             canvas.width = iterationOptions.width;
@@ -362,25 +386,30 @@ export const App = () => {
               xforms={normalizedXforms}
               iterationOptions={iterationOptions}
               postProcessOptions={postProcessOptions}
+              live={live}
             />;
           }}
         </LiveCanvas>
-        <RenderControls
-          iterationOptions={iterationOptions}
-          onIterationOptionsChange={setIterationOptions}
-          postProcessOptions={postProcessOptions}
-          onPostProcessOptionsChange={setPostProcessOptions}
-          xforms={xforms}
-          onXformsChange={setXforms}
-        />
-        {xforms.map((xform, index) => (
-          <XFormEditor key={index} xform={xform} onXformChange={(xform) => {
-            const new_xforms = [...xforms];
-            new_xforms[index] = xform;
-            setXforms(new_xforms);
-          }} />
-        ))}
-      </Stack>
+        <VStack gap="4">
+          <RenderControls
+            iterationOptions={iterationOptions}
+            onIterationOptionsChange={setIterationOptions}
+            postProcessOptions={postProcessOptions}
+            onPostProcessOptionsChange={setPostProcessOptions}
+            xforms={xforms}
+            onXformsChange={setXforms}
+            live={live}
+            onToggleLive={() => setLive(!live)}
+          />
+          {xforms.map((xform, index) => (
+            <XFormEditor key={index} xform={xform} onXformChange={(xform) => {
+              const new_xforms = [...xforms];
+              new_xforms[index] = xform;
+              setXforms(new_xforms);
+            }} />
+          ))}
+        </VStack>
+      </HStack>
     </Container>
   );
 };

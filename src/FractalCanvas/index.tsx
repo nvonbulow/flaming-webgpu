@@ -58,6 +58,7 @@ interface FractalCanvasProps {
   xforms: XForm[];
   iterationOptions: IterationOptions;
   postProcessOptions: PostProcessingOptions;
+  live?: boolean;
 }
 
 export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas, ...props }) => {

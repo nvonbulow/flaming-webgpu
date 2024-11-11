@@ -25,6 +25,8 @@ export const IterationOptionsSchema = z.object({
   batch_size: z.number().int().positive().default(1000),
   // number of threads to run in
   parallelism: z.number().int().positive().default(64),
+  // maximum number of batches to run
+  batch_limit: z.number().int().positive().default(100),
 });
 export type IterationOptions = z.infer<typeof IterationOptionsSchema>;
 

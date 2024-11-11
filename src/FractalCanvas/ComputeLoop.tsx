@@ -17,7 +17,7 @@ export type ComputeLoopProps = {
   /** Limit # of dispatches */
   limit?: number,
 
-  children?: LiveElement<any> | ((tick: number) => LiveElement<any>);
+  children?: LiveElement<any> | ((tick: number, reset: () => void) => LiveElement<any>);
 
   then?: (count: number) => LiveElement,
 };
@@ -38,7 +38,12 @@ export const ComputeLoop: LC<ComputeLoopProps> = memo((props: ComputeLoopProps) 
   const countRef = useRef(0);
   const [tick, setTick] = useState(0);
 
-  const childState = typeof children === 'function' ? children(tick) : children;
+  const resetCount = () => {
+    countRef.current = 0;
+    setTick(0);
+  }
+
+  const childState = typeof children === 'function' ? children(tick, resetCount) : children;
 
   return (
     reconcile(
