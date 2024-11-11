@@ -1,5 +1,5 @@
 import { LiveCanvas } from '@use-gpu/react';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { FractalCanvas } from './FractalCanvas';
 import { Container, HStack, Stack, VStack } from 'styled-system/jsx';
 import { Slider } from './components/ui/slider';
@@ -293,6 +293,8 @@ export const App = () => {
   const [postProcessOptions, setPostProcessOptions] = useState(defaultPostProcessingOptions());
   const [xforms, setXforms] = useState(defaultXforms());
 
+  const normalizedXforms = useMemo(() => normalizeXForms(xforms), [xforms]);
+
   return (
     <Container display="flex" py="12" gap="8" justifyContent="center">
       <Stack gap="4">
@@ -302,7 +304,7 @@ export const App = () => {
             canvas.height = iterationOptions.height;
             return <FractalCanvas
               canvas={canvas}
-              xforms={normalizeXForms(xforms)}
+              xforms={normalizedXforms}
               iterationOptions={iterationOptions}
               postProcessOptions={postProcessOptions}
             />;
