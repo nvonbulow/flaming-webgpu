@@ -1,23 +1,25 @@
 import { LiveCanvas } from '@use-gpu/react';
 import React, { useState } from 'react';
 import { FractalCanvas } from './FractalCanvas';
-import { Container, HStack, Stack } from 'styled-system/jsx';
+import { Container, HStack, Stack, VStack } from 'styled-system/jsx';
 import { Slider } from './components/ui/slider';
 import { IterationOptions, normalizeXForms, PostProcessingOptions, XForm } from './flame';
 import { barnsleyFern } from './flame/generators';
+import { NumberInput } from './components/ui/number-input';
+import { Button } from './components/ui/button';
 
 const defaultIterationOptions = (): IterationOptions => ({
   width: 800,
   height: 600,
   supersample: 2,
-  x_range: [-7, 7],
+  x_range: [-3, 3],
   y_range: [-0.2, 10.0],
   batch_size: 10000,
   parallelism: 64,
 });
 
 const defaultPostProcessingOptions = (): PostProcessingOptions => ({
-  gamma: 1.0,
+  gamma: 4.0,
 });
 
 const defaultXforms = () => barnsleyFern();
@@ -37,9 +39,20 @@ const RenderControls: React.FC<RenderControlsProps> = ({
   onIterationOptionsChange,
   postProcessOptions,
   onPostProcessOptionsChange,
+  xforms,
+  onXformsChange,
 }) => {
+  const reset = () => {
+    onIterationOptionsChange(defaultIterationOptions());
+    onPostProcessOptionsChange(defaultPostProcessingOptions());
+    onXformsChange(barnsleyFern());
+  };
+
   return (
     <Container width="full">
+      <HStack>
+        <Button onClick={reset}>Reset</Button>
+      </HStack>
       <HStack>
         <Slider
           min={1.0}
@@ -57,6 +70,32 @@ const RenderControls: React.FC<RenderControlsProps> = ({
         </Slider>
       </HStack>
       <HStack>
+        <NumberInput
+          value={iterationOptions.x_range[0].toString()}
+          step={0.1}
+          allowMouseWheel
+          onValueChange={({ value }) => {
+            onIterationOptionsChange({
+              ...iterationOptions,
+              x_range: [Number(value), iterationOptions.x_range[1]],
+            });
+          }}
+        >
+          X Min
+        </NumberInput>
+        <NumberInput
+          value={iterationOptions.x_range[1].toString()}
+          step={0.1}
+          allowMouseWheel
+          onValueChange={({ value }) => {
+            onIterationOptionsChange({
+              ...iterationOptions,
+              x_range: [iterationOptions.x_range[0], Number(value)],
+            });
+          }}
+        >
+          X Max
+        </NumberInput>
         <Slider
           min={-10.0}
           max={10.0}
@@ -69,8 +108,36 @@ const RenderControls: React.FC<RenderControlsProps> = ({
             });
           }}
         >
-          X Range: {iterationOptions.x_range[0]} - {iterationOptions.x_range[1]}
+          X Range
         </Slider>
+      </HStack>
+      <HStack>
+        <NumberInput
+          value={iterationOptions.y_range[0].toString()}
+          step={0.1}
+          allowMouseWheel
+          onValueChange={({ value }) => {
+            onIterationOptionsChange({
+              ...iterationOptions,
+              y_range: [Number(value), iterationOptions.y_range[1]],
+            });
+          }}
+        >
+          Y Min
+        </NumberInput>
+        <NumberInput
+          value={iterationOptions.y_range[1].toString()}
+          step={0.1}
+          allowMouseWheel
+          onValueChange={({ value }) => {
+            onIterationOptionsChange({
+              ...iterationOptions,
+              y_range: [iterationOptions.y_range[0], Number(value)],
+            });
+          }}
+        >
+          Y Max
+        </NumberInput>
         <Slider
           min={-10.0}
           max={10.0}
@@ -83,9 +150,139 @@ const RenderControls: React.FC<RenderControlsProps> = ({
             });
           }}
         >
-          Y Range: {iterationOptions.y_range[0]} - {iterationOptions.y_range[1]}
+          Y Range
         </Slider>
       </HStack>
+    </Container>
+  );
+};
+
+interface XFormEditorProps {
+  xform: XForm;
+  onXformChange: (xform: XForm) => void;
+}
+
+export const XFormEditor: React.FC<XFormEditorProps> = ({
+  xform,
+  onXformChange,
+}) => {
+  const [a, b, c, d, e, f] = xform.affine;
+  const step = 0.01;
+  return (
+    <Container>
+      <VStack gap="0">
+        <Slider
+          min={0.0}
+          max={1.0}
+          step={0.01}
+          value={[xform.weight]}
+          onValueChange={({ value: [value] }) => {
+            onXformChange({
+              ...xform,
+              weight: value,
+            });
+          }}
+        >
+          Weight: {xform.weight}
+        </Slider>
+        <Slider
+          min={0.0}
+          max={1.0}
+          step={0.01}
+          value={[xform.color]}
+          onValueChange={({ value: [value] }) => {
+            onXformChange({
+              ...xform,
+              color: value,
+            });
+          }}
+        >
+          Color: {xform.color}
+        </Slider>
+        <HStack gap="4">
+          <NumberInput
+            value={a.toString()}
+            step={step}
+            allowMouseWheel
+            onValueChange={({ value }) => {
+              onXformChange({
+                ...xform,
+                affine: [Number(value), b, c, d, e, f, 0, 0, 1],
+              });
+            }}
+          >
+            A
+          </NumberInput>
+          <NumberInput
+            value={b.toString()}
+            step={step}
+            allowMouseWheel
+            onValueChange={({ value }) => {
+              onXformChange({
+                ...xform,
+                affine: [a, Number(value), c, d, e, f, 0, 0, 1],
+              });
+            }}
+          >
+            B
+          </NumberInput>
+          <NumberInput
+            value={c.toString()}
+            step={step}
+            allowMouseWheel
+            onValueChange={({ value }) => {
+              onXformChange({
+                ...xform,
+                affine: [a, b, Number(value), d, e, f, 0, 0, 1],
+              });
+            }}
+          >
+            C
+          </NumberInput>
+        </HStack>
+        <HStack gap="4">
+          <NumberInput
+            value={d.toString()}
+            step={step}
+            allowMouseWheel
+            onValueChange={({ value }) => {
+              onXformChange({
+                ...xform,
+                affine: [a, b, c, Number(value), e, f, 0, 0, 1],
+              });
+            }}
+          >
+            D
+          </NumberInput>
+          <NumberInput
+            value={e.toString()}
+            step={step}
+            allowMouseWheel
+            onValueChange={({ value }) => {
+              onXformChange({
+                ...xform,
+                affine: [a, b, c, d, Number(value), f, 0, 0, 1],
+              });
+            }}
+          >
+            E
+          </NumberInput>
+          <NumberInput
+            value={f.toString()}
+            step={step}
+            allowMouseWheel
+            onValueChange={({ value }) => {
+              onXformChange({
+                ...xform,
+                affine: [a, b, c, d, e, Number(value), 0, 0, 1],
+              });
+            }}
+          >
+            F
+          </NumberInput>
+        </HStack>
+
+      </VStack>
     </Container>
   );
 };
@@ -119,6 +316,13 @@ export const App = () => {
           xforms={xforms}
           onXformsChange={setXforms}
         />
+        {xforms.map((xform, index) => (
+          <XFormEditor key={index} xform={xform} onXformChange={(xform) => {
+            const new_xforms = [...xforms];
+            new_xforms[index] = xform;
+            setXforms(new_xforms);
+          }} />
+        ))}
       </Stack>
     </Container>
   );

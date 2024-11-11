@@ -1,5 +1,5 @@
 'use client'
-import { type ReactNode, forwardRef } from 'react'
+import React, { type ReactNode, forwardRef } from 'react'
 import * as StyledSlider from './styled/slider'
 
 export interface SliderProps extends StyledSlider.RootProps {

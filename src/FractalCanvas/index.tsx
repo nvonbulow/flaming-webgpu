@@ -135,17 +135,17 @@ const FractalCanvasInternal: LC<FractalCanvasInternalProps> = ({
             height={iterationOptions.height}
           />,
         ]}
-        then={([xforms, histogram, downsampled_histogram, histogram_max, texture, textureBuf]: StorageTarget[]) => {
+        then={([xforms_in, histogram, downsampled_histogram, histogram_max, texture, textureBuf]: StorageTarget[]) => {
           const device = useDeviceContext();
           useResource(() => {
             clearBuffer(device, histogram.buffer);
-          }, [iterationOptions, device, histogram]);
+          }, [iterationOptions, xforms]);
           return <>
             <Compute>
               <Suspense>
                 <Stage targets={[histogram]}>
                   <Kernel
-                    sources={[xforms]}
+                    sources={[xforms_in]}
                     shader={generatePoints}
                     args={[
                       rand_seed,
