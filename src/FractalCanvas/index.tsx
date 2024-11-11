@@ -1,9 +1,9 @@
-import React, { Gather, type LC, type PropsWithChildren, useFiber } from '@use-gpu/live';
+import React, { Gather, type LC, type PropsWithChildren, useFiber, useResource } from '@use-gpu/live';
 
 import { HTML } from '@use-gpu/react';
 import { Canvas, DOMEvents, WebGPU } from '@use-gpu/webgpu';
-import { DebugProvider, FontLoader, FlatCamera, CursorProvider, PickingTarget, PanControls, LinearRGB, ComputeBuffer, Compute, Suspense, Stage, Kernel, useShader, useLambdaSource, RawFullScreen, StructData, Pass, TextureBuffer, Loop, useAnimationFrame, useRenderContext } from '@use-gpu/workbench';
-import { StorageTarget } from '@use-gpu/core';
+import { DebugProvider, FontLoader, FlatCamera, CursorProvider, PickingTarget, PanControls, LinearRGB, ComputeBuffer, Compute, Suspense, Stage, Kernel, useShader, useLambdaSource, RawFullScreen, StructData, Pass, TextureBuffer, Loop, useAnimationFrame, useRenderContext, useDeviceContext } from '@use-gpu/workbench';
+import { clearBuffer, StorageTarget } from '@use-gpu/core';
 
 import { wgsl } from '@use-gpu/shader/wgsl';
 
@@ -136,6 +136,10 @@ const FractalCanvasInternal: LC<FractalCanvasInternalProps> = ({
           />,
         ]}
         then={([xforms, histogram, downsampled_histogram, histogram_max, texture, textureBuf]: StorageTarget[]) => {
+          const device = useDeviceContext();
+          useResource(() => {
+            clearBuffer(device, histogram.buffer);
+          }, [iterationOptions, device, histogram]);
           return <>
             <Compute>
               <Suspense>
