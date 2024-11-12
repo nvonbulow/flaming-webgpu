@@ -1,5 +1,5 @@
 import React, { Gather, LC, LiveElement, Provide, useResource } from "@use-gpu/live";
-import { ComputeBuffer, Kernel, RenderContext, Stage, StructData, Suspense, TextureBuffer, useAnimationFrame, useDeviceContext } from "@use-gpu/workbench";
+import { ComputeBuffer, Kernel, RenderContext, Stage, StructData, Suspense, TextureBuffer, useDeviceContext } from "@use-gpu/workbench";
 import { IterationOptions, PostProcessingOptions, XForm } from "~/flame";
 
 import { main as generatePoints } from './wgsl/generate_points.wgsl';
@@ -37,7 +37,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
           <StructData
             key="xforms"
             format="array<T>"
-            type={GpuXForm}
+            type={GpuXForm as any}
             data={xforms}
           />,
           // histogram
@@ -95,7 +95,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
               batch={1}
               limit={iterationOptions.batch_limit}
               continued
-              then={(tick) => onRenderBatch?.(tick)}
+              then={(tick) => (onRenderBatch?.(tick), null)}
             >
               {(tick, resetCount) => {
                 useResource(() => {
@@ -107,7 +107,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
                     <Stage targets={[histogram]}>
                       <Kernel
                         sources={[xforms_in]}
-                        shader={generatePoints}
+                        shader={generatePoints as any}
                         args={[
                           tick,
                           [iterationOptions.width * iterationOptions.supersample, iterationOptions.height * iterationOptions.supersample],
@@ -122,7 +122,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
                     <Stage target={downsampled_histogram}>
                       <Kernel
                         source={histogram}
-                        shader={downsampleHistogram}
+                        shader={downsampleHistogram as any}
                         size={downsampled_histogram.size}
                         args={[iterationOptions.supersample]}
                       />
@@ -130,7 +130,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
                     <Stage target={histogram_max}>
                       <Kernel
                         source={downsampled_histogram}
-                        shader={histogramMax}
+                        shader={histogramMax as any}
                         // 64 threads
                         size={[iterationOptions.parallelism]}
                         args={[histogram.size]}
@@ -139,7 +139,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
                     <Stage targets={[texture, textureBuf]}>
                       <Kernel
                         sources={[downsampled_histogram, histogram_max]}
-                        shader={renderHistogram}
+                        shader={renderHistogram as any}
                         args={[
                           postProcessOptions.gamma,
                         ]}

@@ -1,8 +1,8 @@
-import React, { type LC, type PropsWithChildren, Provide, useFiber } from '@use-gpu/live';
+import React, { type LC, type PropsWithChildren, useFiber } from '@use-gpu/live';
 
 import { HTML } from '@use-gpu/react';
 import { Canvas, DOMEvents, WebGPU } from '@use-gpu/webgpu';
-import { DebugProvider, FontLoader, FlatCamera, CursorProvider, PickingTarget, PanControls, LinearRGB, useShader, useLambdaSource, RawFullScreen, StructData, Pass, RenderContext, Loop } from '@use-gpu/workbench';
+import { DebugProvider, FontLoader, FlatCamera, CursorProvider, PickingTarget, PanControls, LinearRGB, useShader, useLambdaSource, RawFullScreen, Pass, Loop } from '@use-gpu/workbench';
 import { StorageTarget } from '@use-gpu/core';
 
 import { wgsl } from '@use-gpu/shader/wgsl';

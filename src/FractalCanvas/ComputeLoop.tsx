@@ -19,7 +19,7 @@ export type ComputeLoopProps = {
 
   children?: LiveElement<any> | ((tick: number, reset: () => void) => LiveElement<any>);
 
-  then?: (count: number) => LiveElement,
+  then?: (count: number) => LiveElement | null | undefined,
 };
 
 export const ComputeLoop: LC<ComputeLoopProps> = memo((props: ComputeLoopProps) => {

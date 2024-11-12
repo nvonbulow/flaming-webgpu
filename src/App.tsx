@@ -1,7 +1,7 @@
 import { LiveCanvas } from '@use-gpu/react';
 import React, { useMemo, useState } from 'react';
 import { FractalCanvas } from './FractalCanvas';
-import { Container, HStack, Stack, VStack } from 'styled-system/jsx';
+import { Container, HStack, VStack } from 'styled-system/jsx';
 import { Slider } from './components/ui/slider';
 import { IterationOptions, normalizeXForms, PostProcessingOptions, XForm } from './flame';
 import { barnsleyFern, sierpinskiTriangle } from './flame/generators';
