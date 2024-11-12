@@ -12,14 +12,18 @@ export type XForm = z.infer<typeof XFormSchema>;
 
 export const IterationOptionsSchema = z.object({
   // dimensions of the output image
-  width: z.number().int().positive(),
-  height: z.number().int().positive(),
+  width: z.number().int().positive().default(800),
+  height: z.number().int().positive().default(600),
   // number of bins per pixel
   supersample: z.number().int().positive().default(1),
 
-  // ranges in coordinate space covererd by the image
-  x_range: z.array(z.number()).length(2),
-  y_range: z.array(z.number()).length(2),
+  // image center in coodinate space
+  camera_x: z.number().default(0),
+  camera_y: z.number().default(0),
+  // scale factor
+  // 1 corresponds to an x range of (-1.0, 1.0)
+  // and a y range scaled to the aspect ratio
+  camera_zoom: z.number().default(1),
 
   // number of iterations to run per thread each batch
   batch_size: z.number().int().positive().default(1000),

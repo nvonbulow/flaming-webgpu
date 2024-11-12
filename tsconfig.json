@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "moduleResolution": "bundler",
+    "noEmit": true,
     "module": "es2015",
     "esModuleInterop": true,
     "skipLibCheck": true,

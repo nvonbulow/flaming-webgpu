@@ -8,12 +8,41 @@ use './random'::{ seed, rand, frand, hash };
 // random seed
 @link fn getSeed() -> u32 {}
 @link fn getHistogramSize() -> vec2<u32> {}
-@link fn getXRange() -> vec2<f32> {}
-@link fn getYRange() -> vec2<f32> {}
+// <center_x, center_y, zoom>
+@link fn getCamera() -> vec3<f32> {}
 @link fn getBatchSize() -> u32 {}
 @link var<storage> xforms: array<XForm>;
 
 @link var<storage, read_write> histogram: Histogram;
+
+fn getXRange() -> vec2<f32> {
+  let camera = getCamera();
+  let inv_zoom = 1.0 / camera.z;
+  let center_x = camera.x;
+
+  let range_x = vec2<f32>(
+    center_x - inv_zoom,
+    center_x + inv_zoom,
+  );
+
+  return range_x;
+}
+
+fn getYRange() -> vec2<f32> {
+  let camera = getCamera();
+  let inv_zoom = 1.0 / camera.z;
+  let center_y = camera.y;
+
+  let histogram_size = getHistogramSize();
+  let inv_aspect_ratio = f32(histogram_size.y) / f32(histogram_size.x);
+
+  let range_y = vec2<f32>(
+    center_y - inv_zoom * inv_aspect_ratio,
+    center_y + inv_zoom * inv_aspect_ratio,
+  );
+  
+  return range_y;
+}
 
 fn scaleMatrix() -> mat3x3<f32> {
   let size = getHistogramSize();

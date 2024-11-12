@@ -110,9 +110,16 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
                         shader={generatePoints as any}
                         args={[
                           tick,
-                          [iterationOptions.width * iterationOptions.supersample, iterationOptions.height * iterationOptions.supersample],
-                          iterationOptions.x_range,
-                          iterationOptions.y_range,
+                          [
+                            iterationOptions.width * iterationOptions.supersample,
+                            iterationOptions.height * iterationOptions.supersample
+                          ],
+                          // camera options
+                          [
+                            iterationOptions.camera_x,
+                            iterationOptions.camera_y,
+                            iterationOptions.camera_zoom
+                          ],
                           iterationOptions.batch_size,
                         ]}
                         // number of threads

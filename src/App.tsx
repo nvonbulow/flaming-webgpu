@@ -12,8 +12,9 @@ const defaultIterationOptions = (): IterationOptions => ({
   width: 800,
   height: 600,
   supersample: 2,
-  x_range: [-3, 3],
-  y_range: [-0.2, 10.0],
+  camera_x: 0,
+  camera_y: 0,
+  camera_zoom: 1,
   batch_size: 10000,
   parallelism: 64,
   batch_limit: 100,
@@ -23,7 +24,13 @@ const defaultPostProcessingOptions = (): PostProcessingOptions => ({
   gamma: 4.0,
 });
 
-const defaultXforms = () => barnsleyFern();
+const defaultXforms = (): XForm[] => [{
+  variation_id: 0,
+  weight: 1.0,
+  color: 0.0,
+  speed: 0.0,
+  affine: [1, 0, 0, 0, 1, 0, 0, 0, 1],
+}];
 
 interface RenderControlsProps {
   iterationOptions: IterationOptions;
@@ -72,7 +79,12 @@ const RenderControls: React.FC<RenderControlsProps> = ({
       </HStack>
       <HStack>
         <Button onClick={() => {
-          onIterationOptionsChange(defaultIterationOptions());
+          onIterationOptionsChange({
+            ...defaultIterationOptions(),
+            camera_x: 0.2,
+            camera_y: 5.0,
+            camera_zoom: 0.14,
+          });
           onPostProcessOptionsChange(defaultPostProcessingOptions());
           onXformsChange(barnsleyFern());
         }}>
@@ -81,13 +93,20 @@ const RenderControls: React.FC<RenderControlsProps> = ({
         <Button onClick={() => {
           onIterationOptionsChange({
             ...defaultIterationOptions(),
-            x_range: [-0.5, 0.5],
-            y_range: [-0.833, 0.5],
+            camera_x: 0.0,
+            camera_y: 0.125,
+            camera_zoom: 2,
             width: 800,
             height: 800,
           });
           onPostProcessOptionsChange(defaultPostProcessingOptions());
-          onXformsChange(sierpinskiTriangle([[0, 0.5], [-0.5, -0.833], [0.5, -0.833]]));
+          onXformsChange(sierpinskiTriangle([
+            // points on an equilateral triangle
+            // centered at the origin with a side length of 1
+            [0.0, 0.57735],
+            [0.5, -0.288675],
+            [-0.5, -0.288675],
+          ]));
         }}>
           Sierpinski Triangle
         </Button>
@@ -152,88 +171,46 @@ const RenderControls: React.FC<RenderControlsProps> = ({
       </HStack>
       <HStack>
         <NumberInput
-          value={iterationOptions.x_range[0].toString()}
+          value={iterationOptions.camera_x.toString()}
           step={0.1}
           allowMouseWheel
           onValueChange={({ value }) => {
             onIterationOptionsChange({
               ...iterationOptions,
-              x_range: [Number(value), iterationOptions.x_range[1]],
+              camera_x: Number(value),
             });
           }}
         >
-          X Min
+          Camera Center X
         </NumberInput>
         <NumberInput
-          value={iterationOptions.x_range[1].toString()}
+          value={iterationOptions.camera_y.toString()}
           step={0.1}
           allowMouseWheel
           onValueChange={({ value }) => {
             onIterationOptionsChange({
               ...iterationOptions,
-              x_range: [iterationOptions.x_range[0], Number(value)],
+              camera_y: Number(value),
             });
           }}
         >
-          X Max
+          Camera Center Y
         </NumberInput>
-        <Slider
-          min={-10.0}
-          max={10.0}
-          step={0.1}
-          value={iterationOptions.x_range}
-          onValueChange={({ value }) => {
-            onIterationOptionsChange({
-              ...iterationOptions,
-              x_range: value,
-            });
-          }}
-        >
-          X Range
-        </Slider>
       </HStack>
-      <HStack>
-        <NumberInput
-          value={iterationOptions.y_range[0].toString()}
-          step={0.1}
-          allowMouseWheel
-          onValueChange={({ value }) => {
-            onIterationOptionsChange({
-              ...iterationOptions,
-              y_range: [Number(value), iterationOptions.y_range[1]],
-            });
-          }}
-        >
-          Y Min
-        </NumberInput>
-        <NumberInput
-          value={iterationOptions.y_range[1].toString()}
-          step={0.1}
-          allowMouseWheel
-          onValueChange={({ value }) => {
-            onIterationOptionsChange({
-              ...iterationOptions,
-              y_range: [iterationOptions.y_range[0], Number(value)],
-            });
-          }}
-        >
-          Y Max
-        </NumberInput>
-        <Slider
-          min={-10.0}
-          max={10.0}
-          step={0.1}
-          value={iterationOptions.y_range}
-          onValueChange={({ value }) => {
-            onIterationOptionsChange({
-              ...iterationOptions,
-              y_range: value,
-            });
-          }}
-        >
-          Y Range
-        </Slider>
-      </HStack>
+      <Slider
+        min={0.01}
+        max={10.0}
+        step={0.01}
+        value={[iterationOptions.camera_zoom]}
+        onValueChange={({ value: [value] }) => {
+          onIterationOptionsChange({
+            ...iterationOptions,
+            camera_zoom: value,
+          });
+        }}
+      >
+        Camera Zoom: {iterationOptions.camera_zoom}
+      </Slider>
     </Container>
   );
 };
