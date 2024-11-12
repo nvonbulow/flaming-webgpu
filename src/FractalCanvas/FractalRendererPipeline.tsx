@@ -1,6 +1,6 @@
-import React, { Gather, LC, LiveElement, Provide, useResource } from "@use-gpu/live";
+import React, { Gather, LC, LiveElement, Provide, useMemo, useResource } from "@use-gpu/live";
 import { ComputeBuffer, Kernel, RenderContext, Stage, StructData, Suspense, TextureBuffer, useDeviceContext } from "@use-gpu/workbench";
-import { IterationOptions, PostProcessingOptions, XForm } from "~/flame";
+import { IterationOptions, normalizeXForms, PostProcessingOptions, XForm } from "~/flame";
 
 import { main as generatePoints } from './wgsl/generate_points.wgsl';
 import { main as downsampleHistogram } from './wgsl/histogram_supersample.wgsl';
@@ -21,13 +21,15 @@ export interface FractalRendererProps {
 };
 
 export const FractalRendererPipeline: LC<FractalRendererProps> = ({
-  xforms,
+  xforms: xforms,
   iterationOptions,
   postProcessOptions,
   children,
   live = true,
   onRenderBatch,
 }) => {
+
+  const normalizedXForms = useMemo(() => normalizeXForms(xforms), [xforms]);
 
   return (
     <Provide context={RenderContext} value={{ width: iterationOptions.width, height: iterationOptions.height }}>
@@ -38,7 +40,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
             key="xforms"
             format="array<T>"
             type={GpuXForm as any}
-            data={xforms}
+            data={normalizedXForms}
           />,
           // histogram
           <ComputeBuffer
@@ -72,20 +74,13 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
             width={iterationOptions.width}
             height={iterationOptions.height}
           />,
-          <ComputeBuffer
-            key="textureBuf"
-            format="vec4<f32>"
-            width={iterationOptions.width}
-            height={iterationOptions.height}
-          />,
         ]}
         then={([
-          xforms_in,
-          histogram,
-          downsampled_histogram,
-          histogram_max,
-          texture,
-          textureBuf,
+          xforms_buf,
+          histogram_buf,
+          downsampled_histogram_buf,
+          histogram_max_buf,
+          texture_out,
         ]: StorageTarget[]) => {
 
           const device = useDeviceContext();
@@ -99,14 +94,14 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
             >
               {(tick, resetCount) => {
                 useResource(() => {
-                  clearBuffer(device, histogram.buffer);
+                  clearBuffer(device, histogram_buf.buffer);
                   resetCount();
-                }, [iterationOptions, postProcessOptions, xforms]);
+                }, [iterationOptions, postProcessOptions, normalizedXForms]);
                 return (
                   <Suspense>
-                    <Stage targets={[histogram]}>
+                    <Stage targets={[histogram_buf]}>
                       <Kernel
-                        sources={[xforms_in]}
+                        sources={[xforms_buf]}
                         shader={generatePoints as any}
                         args={[
                           tick,
@@ -126,38 +121,38 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
                         size={[iterationOptions.parallelism]}
                       />
                     </Stage>
-                    <Stage target={downsampled_histogram}>
+                    <Stage target={downsampled_histogram_buf}>
                       <Kernel
-                        source={histogram}
+                        source={histogram_buf}
                         shader={downsampleHistogram as any}
-                        size={downsampled_histogram.size}
+                        size={downsampled_histogram_buf.size}
                         args={[iterationOptions.supersample]}
                       />
                     </Stage>
-                    <Stage target={histogram_max}>
+                    <Stage target={histogram_max_buf}>
                       <Kernel
-                        source={downsampled_histogram}
+                        source={downsampled_histogram_buf}
                         shader={histogramMax as any}
                         // 64 threads
                         size={[iterationOptions.parallelism]}
-                        args={[histogram.size]}
+                        args={[histogram_buf.size]}
                       />
                     </Stage>
-                    <Stage targets={[texture, textureBuf]}>
+                    <Stage targets={[texture_out]}>
                       <Kernel
-                        sources={[downsampled_histogram, histogram_max]}
+                        sources={[downsampled_histogram_buf, histogram_max_buf]}
                         shader={renderHistogram as any}
                         args={[
                           postProcessOptions.gamma,
                         ]}
-                        size={texture.size}
+                        size={texture_out.size}
                       />
                     </Stage>
                   </Suspense>
                 );
               }}
             </ComputeLoop>
-            {children(texture)}
+            {children(texture_out)}
           </>;
         }}
       />

@@ -11,7 +11,6 @@ use './types'::{ HistogramInput, HistogramBucketInput };
 @link var<storage> histogram_max: u32;
 
 @link var<storage, read_write> texture: texture_storage_2d<rgba32float, write>;
-@link var<storage, read_write> texture_buf: array<vec4<f32>>;
 
 @compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
@@ -33,5 +32,4 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     color = color * pow(log_scale, (1.0 / getGamma()));
     
     textureStore(texture, vec2<u32>(x, y), vec4<f32>(color, log_scale));
-    texture_buf[idx] = vec4<f32>(color, log_scale);
 }

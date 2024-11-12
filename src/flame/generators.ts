@@ -5,8 +5,7 @@ export function sierpinskiTriangle(points: number[][]): XForm[] {
     {
       variation_id: 0,
       affine: [0.5, 0.0, 0.5 * points[0][0],
-        0.0, 0.5, 0.5 * points[0][1],
-        0.0, 0.0, 1.0],
+        0.0, 0.5, 0.5 * points[0][1]],
       color: 0,
       speed: 0.5,
       weight: 1 / 3,
@@ -14,8 +13,7 @@ export function sierpinskiTriangle(points: number[][]): XForm[] {
     {
       variation_id: 0,
       affine: [0.5, 0.0, 0.5 * points[1][0],
-        0.0, 0.5, 0.5 * points[1][1],
-        0.0, 0.0, 1.0],
+        0.0, 0.5, 0.5 * points[1][1]],
       color: 0.5,
       speed: 0.5,
       weight: 1 / 3,
@@ -23,8 +21,7 @@ export function sierpinskiTriangle(points: number[][]): XForm[] {
     {
       variation_id: 0,
       affine: [0.5, 0.0, 0.5 * points[2][0],
-        0.0, 0.5, 0.5 * points[2][1],
-        0.0, 0.0, 1.0],
+        0.0, 0.5, 0.5 * points[2][1]],
       color: 1.0,
       speed: 0.5,
       weight: 1 / 3,
@@ -39,8 +36,7 @@ export function barnsleyFern(): XForm[] {
     {
       variation_id: 0,
       affine: [0.0, 0.0, 0.0,
-        0.0, 0.16, 0.0,
-        0.0, 0.0, 1.0],
+        0.0, 0.16, 0.0],
       color: 0,
       speed: 0.5,
       weight: 0.01,
@@ -50,8 +46,7 @@ export function barnsleyFern(): XForm[] {
     {
       variation_id: 1,
       affine: [0.85, 0.04, 0.0,
-        -0.04, 0.85, 1.6,
-        0.0, 0.0, 1.0],
+        -0.04, 0.85, 1.6],
       color: 0.5,
       speed: 0.2,
       weight: 0.85,
@@ -61,8 +56,7 @@ export function barnsleyFern(): XForm[] {
     {
       variation_id: 0,
       affine: [0.2, -0.26, 0.0,
-        0.23, 0.22, 1.6,
-        0.0, 0.0, 1.0],
+        0.23, 0.22, 1.6],
       color: 1.0,
       speed: 0.5,
       weight: 0.07,
@@ -72,8 +66,7 @@ export function barnsleyFern(): XForm[] {
     {
       variation_id: 0,
       affine: [-0.15, 0.28, 0.0,
-        0.26, 0.24, 0.44,
-        0.0, 0.0, 1.0],
+        0.26, 0.24, 0.44],
       color: 1.0,
       speed: 0.5,
       weight: 0.07,

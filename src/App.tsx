@@ -370,7 +370,6 @@ export const App = () => {
   const [iterationOptions, setIterationOptions] = useState(defaultIterationOptions());
   const [postProcessOptions, setPostProcessOptions] = useState(defaultPostProcessingOptions());
   const [xforms, setXforms] = useState(defaultXforms());
-  const normalizedXforms = useMemo(() => normalizeXForms(xforms), [xforms]);
 
   const [live, setLive] = useState(true);
 
@@ -390,7 +389,7 @@ export const App = () => {
             canvas.height = iterationOptions.height;
             return <FractalCanvas
               canvas={canvas}
-              xforms={normalizedXforms}
+              xforms={xforms}
               iterationOptions={iterationOptions}
               postProcessOptions={postProcessOptions}
               live={live}
