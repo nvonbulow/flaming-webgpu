@@ -8,6 +8,7 @@ import { barnsleyFern, sierpinskiTriangle } from './flame/generators';
 import { NumberInput } from './components/ui/number-input';
 import { Button } from './components/ui/button';
 import { Tabs } from './components/ui/tabs';
+import { Card } from './components/ui/card';
 
 const defaultIterationOptions = (): IterationOptions => ({
   width: 800,
@@ -230,139 +231,137 @@ export const XFormEditor: React.FC<XFormEditorProps> = ({
   const [a, b, c, d, e, f] = xform.affine;
   const step = 0.01;
   return (
-    <Container>
-      <VStack gap="2">
-        <Slider
-          min={0.0}
-          max={1.0}
-          step={0.01}
-          value={[xform.weight]}
-          onValueChange={({ value: [value] }) => {
+    <VStack gap="2">
+      <Slider
+        min={0.0}
+        max={1.0}
+        step={0.01}
+        value={[xform.weight]}
+        onValueChange={({ value: [value] }) => {
+          onXformChange({
+            ...xform,
+            weight: value,
+          });
+        }}
+      >
+        Weight: {xform.weight}
+      </Slider>
+      <Slider
+        min={0.0}
+        max={1.0}
+        step={0.01}
+        value={[xform.color]}
+        onValueChange={({ value: [value] }) => {
+          onXformChange({
+            ...xform,
+            color: value,
+          });
+        }}
+      >
+        Color: {xform.color}
+      </Slider>
+      <Slider
+        min={0.0}
+        max={1.0}
+        step={0.01}
+        value={[xform.speed]}
+        onValueChange={({ value: [value] }) => {
+          onXformChange({
+            ...xform,
+            speed: value,
+          });
+        }}
+      >
+        Speed: {xform.speed}
+      </Slider>
+      <HStack gap="4">
+        <NumberInput
+          value={a.toString()}
+          step={step}
+          allowMouseWheel
+          onValueChange={({ value }) => {
             onXformChange({
               ...xform,
-              weight: value,
+              affine: [Number(value), b, c, d, e, f, 0, 0, 1],
             });
           }}
         >
-          Weight: {xform.weight}
-        </Slider>
-        <Slider
-          min={0.0}
-          max={1.0}
-          step={0.01}
-          value={[xform.color]}
-          onValueChange={({ value: [value] }) => {
+          A
+        </NumberInput>
+        <NumberInput
+          value={b.toString()}
+          step={step}
+          allowMouseWheel
+          onValueChange={({ value }) => {
             onXformChange({
               ...xform,
-              color: value,
+              affine: [a, Number(value), c, d, e, f, 0, 0, 1],
             });
           }}
         >
-          Color: {xform.color}
-        </Slider>
-        <Slider
-          min={0.0}
-          max={1.0}
-          step={0.01}
-          value={[xform.speed]}
-          onValueChange={({ value: [value] }) => {
+          B
+        </NumberInput>
+        <NumberInput
+          value={c.toString()}
+          step={step}
+          allowMouseWheel
+          onValueChange={({ value }) => {
             onXformChange({
               ...xform,
-              speed: value,
+              affine: [a, b, Number(value), d, e, f, 0, 0, 1],
             });
           }}
         >
-          Speed: {xform.speed}
-        </Slider>
-        <HStack gap="4">
-          <NumberInput
-            value={a.toString()}
-            step={step}
-            allowMouseWheel
-            onValueChange={({ value }) => {
-              onXformChange({
-                ...xform,
-                affine: [Number(value), b, c, d, e, f, 0, 0, 1],
-              });
-            }}
-          >
-            A
-          </NumberInput>
-          <NumberInput
-            value={b.toString()}
-            step={step}
-            allowMouseWheel
-            onValueChange={({ value }) => {
-              onXformChange({
-                ...xform,
-                affine: [a, Number(value), c, d, e, f, 0, 0, 1],
-              });
-            }}
-          >
-            B
-          </NumberInput>
-          <NumberInput
-            value={c.toString()}
-            step={step}
-            allowMouseWheel
-            onValueChange={({ value }) => {
-              onXformChange({
-                ...xform,
-                affine: [a, b, Number(value), d, e, f, 0, 0, 1],
-              });
-            }}
-          >
-            C
-          </NumberInput>
-        </HStack>
-        <HStack gap="4">
-          <NumberInput
-            value={d.toString()}
-            step={step}
-            allowMouseWheel
-            onValueChange={({ value }) => {
-              onXformChange({
-                ...xform,
-                affine: [a, b, c, Number(value), e, f, 0, 0, 1],
-              });
-            }}
-          >
-            D
-          </NumberInput>
-          <NumberInput
-            value={e.toString()}
-            step={step}
-            allowMouseWheel
-            onValueChange={({ value }) => {
-              onXformChange({
-                ...xform,
-                affine: [a, b, c, d, Number(value), f, 0, 0, 1],
-              });
-            }}
-          >
-            E
-          </NumberInput>
-          <NumberInput
-            value={f.toString()}
-            step={step}
-            allowMouseWheel
-            onValueChange={({ value }) => {
-              onXformChange({
-                ...xform,
-                affine: [a, b, c, d, e, Number(value), 0, 0, 1],
-              });
-            }}
-          >
-            F
-          </NumberInput>
-        </HStack>
-        <Flex width="full" direction="row" alignItems="flex-start">
-          <Button onClick={onXFormDelete}>
-            Delete
-          </Button>
-        </Flex>
-      </VStack>
-    </Container>
+          C
+        </NumberInput>
+      </HStack>
+      <HStack gap="4">
+        <NumberInput
+          value={d.toString()}
+          step={step}
+          allowMouseWheel
+          onValueChange={({ value }) => {
+            onXformChange({
+              ...xform,
+              affine: [a, b, c, Number(value), e, f, 0, 0, 1],
+            });
+          }}
+        >
+          D
+        </NumberInput>
+        <NumberInput
+          value={e.toString()}
+          step={step}
+          allowMouseWheel
+          onValueChange={({ value }) => {
+            onXformChange({
+              ...xform,
+              affine: [a, b, c, d, Number(value), f, 0, 0, 1],
+            });
+          }}
+        >
+          E
+        </NumberInput>
+        <NumberInput
+          value={f.toString()}
+          step={step}
+          allowMouseWheel
+          onValueChange={({ value }) => {
+            onXformChange({
+              ...xform,
+              affine: [a, b, c, d, e, Number(value), 0, 0, 1],
+            });
+          }}
+        >
+          F
+        </NumberInput>
+      </HStack>
+      <Flex width="full" direction="row" alignItems="flex-start">
+        <Button onClick={onXFormDelete}>
+          Delete
+        </Button>
+      </Flex>
+    </VStack>
   );
 };
 
@@ -431,20 +430,28 @@ export const App = () => {
                 </Button>
                 <VStack gap="8">
                   {xforms.map((xform, index) => (
-                    <XFormEditor
-                      key={index}
-                      xform={xform}
-                      onXformChange={(xform) => {
-                        const new_xforms = [...xforms];
-                        new_xforms[index] = xform;
-                        setXforms(new_xforms);
-                      }}
-                      onXFormDelete={() => {
-                        const new_xforms = [...xforms];
-                        new_xforms.splice(index, 1);
-                        setXforms(new_xforms);
-                      }}
-                    />
+                    <Card.Root key={index}>
+                      <Card.Header>
+                        <Card.Title>
+                          XForm {index + 1}
+                        </Card.Title>
+                      </Card.Header>
+                      <Card.Body>
+                        <XFormEditor
+                          xform={xform}
+                          onXformChange={(xform) => {
+                            const new_xforms = [...xforms];
+                            new_xforms[index] = xform;
+                            setXforms(new_xforms);
+                          }}
+                          onXFormDelete={() => {
+                            const new_xforms = [...xforms];
+                            new_xforms.splice(index, 1);
+                            setXforms(new_xforms);
+                          }}
+                        />
+                      </Card.Body>
+                    </Card.Root>
                   ))}
                 </VStack>
               </Tabs.Content>
