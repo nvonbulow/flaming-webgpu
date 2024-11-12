@@ -58,6 +58,9 @@ importers:
       '@use-gpu/workbench':
         specifier: ^0.12.0
         version: 0.12.0
+      gl-matrix:
+        specifier: ^3.4.3
+        version: 3.4.3
       react:
         specifier: ^18
         version: 18.3.1

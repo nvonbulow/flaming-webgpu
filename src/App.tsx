@@ -1,14 +1,15 @@
 import { LiveCanvas } from '@use-gpu/react';
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { FractalCanvas } from './FractalCanvas';
 import { Box, Container, Flex, HStack, VStack } from 'styled-system/jsx';
 import { Slider } from './components/ui/slider';
-import { IterationOptions, normalizeXForms, PostProcessingOptions, XForm } from './flame';
+import { IterationOptions, PostProcessingOptions, XForm } from './flame';
 import { barnsleyFern, sierpinskiTriangle } from './flame/generators';
 import { NumberInput } from './components/ui/number-input';
 import { Button } from './components/ui/button';
 import { Tabs } from './components/ui/tabs';
 import { Card } from './components/ui/card';
+import { mat3 } from 'gl-matrix';
 
 const defaultIterationOptions = (): IterationOptions => ({
   width: 800,
@@ -231,7 +232,7 @@ export const XFormEditor: React.FC<XFormEditorProps> = ({
   const [a, b, c, d, e, f] = xform.affine;
   const step = 0.01;
   return (
-    <VStack gap="2">
+    <VStack gap="2" minW="300">
       <Slider
         min={0.0}
         max={1.0}
@@ -282,7 +283,7 @@ export const XFormEditor: React.FC<XFormEditorProps> = ({
           onValueChange={({ value }) => {
             onXformChange({
               ...xform,
-              affine: [Number(value), b, c, d, e, f, 0, 0, 1],
+              affine: [Number(value), b, c, d, e, f],
             });
           }}
         >
@@ -295,7 +296,7 @@ export const XFormEditor: React.FC<XFormEditorProps> = ({
           onValueChange={({ value }) => {
             onXformChange({
               ...xform,
-              affine: [a, Number(value), c, d, e, f, 0, 0, 1],
+              affine: [a, Number(value), c, d, e, f],
             });
           }}
         >
@@ -308,7 +309,7 @@ export const XFormEditor: React.FC<XFormEditorProps> = ({
           onValueChange={({ value }) => {
             onXformChange({
               ...xform,
-              affine: [a, b, Number(value), d, e, f, 0, 0, 1],
+              affine: [a, b, Number(value), d, e, f],
             });
           }}
         >
@@ -323,7 +324,7 @@ export const XFormEditor: React.FC<XFormEditorProps> = ({
           onValueChange={({ value }) => {
             onXformChange({
               ...xform,
-              affine: [a, b, c, Number(value), e, f, 0, 0, 1],
+              affine: [a, b, c, Number(value), e, f],
             });
           }}
         >
@@ -336,7 +337,7 @@ export const XFormEditor: React.FC<XFormEditorProps> = ({
           onValueChange={({ value }) => {
             onXformChange({
               ...xform,
-              affine: [a, b, c, d, Number(value), f, 0, 0, 1],
+              affine: [a, b, c, d, Number(value), f],
             });
           }}
         >
@@ -349,12 +350,32 @@ export const XFormEditor: React.FC<XFormEditorProps> = ({
           onValueChange={({ value }) => {
             onXformChange({
               ...xform,
-              affine: [a, b, c, d, e, Number(value), 0, 0, 1],
+              affine: [a, b, c, d, e, Number(value)],
             });
           }}
         >
           F
         </NumberInput>
+      </HStack>
+      <HStack gap="4">
+        <Button
+          onClick={() => {
+            const affine = mat3.fromValues(a, d, 0, b, e, 0, c, f, 1);
+            const rotation = mat3.fromRotation(mat3.create(), Math.PI / 4);
+            const rotated = mat3.multiply(mat3.create(), rotation, affine);
+
+            // todo: we may as well change the affine to use mat3 in the first place
+            onXformChange({
+              ...xform,
+              affine: [
+                rotated[0], rotated[3], rotated[6],
+                rotated[1], rotated[4], rotated[7],
+              ],
+            });
+          }}
+        >
+          Rotate 45 CW
+        </Button>
       </HStack>
       <Flex width="full" direction="row" alignItems="flex-start">
         <Button onClick={onXFormDelete}>

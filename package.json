@@ -48,6 +48,7 @@
     "@use-gpu/wgsl": "^0.12.0",
     "@use-gpu/wgsl-loader": "^0.12.0",
     "@use-gpu/workbench": "^0.12.0",
+    "gl-matrix": "^3.4.3",
     "react": "^18",
     "react-dom": "^18",
     "vite-tsconfig-paths": "^5.1.2",
