@@ -1,12 +1,13 @@
 import { LiveCanvas } from '@use-gpu/react';
 import React, { useMemo, useState } from 'react';
 import { FractalCanvas } from './FractalCanvas';
-import { Container, HStack, VStack } from 'styled-system/jsx';
+import { Container, Flex, HStack, VStack } from 'styled-system/jsx';
 import { Slider } from './components/ui/slider';
 import { IterationOptions, normalizeXForms, PostProcessingOptions, XForm } from './flame';
 import { barnsleyFern, sierpinskiTriangle } from './flame/generators';
 import { NumberInput } from './components/ui/number-input';
 import { Button } from './components/ui/button';
+import { Tabs } from './components/ui/tabs';
 
 const defaultIterationOptions = (): IterationOptions => ({
   width: 800,
@@ -218,17 +219,19 @@ const RenderControls: React.FC<RenderControlsProps> = ({
 interface XFormEditorProps {
   xform: XForm;
   onXformChange: (xform: XForm) => void;
+  onXFormDelete: () => void;
 }
 
 export const XFormEditor: React.FC<XFormEditorProps> = ({
   xform,
   onXformChange,
+  onXFormDelete,
 }) => {
   const [a, b, c, d, e, f] = xform.affine;
   const step = 0.01;
   return (
     <Container>
-      <VStack gap="0">
+      <VStack gap="2">
         <Slider
           min={0.0}
           max={1.0}
@@ -353,7 +356,11 @@ export const XFormEditor: React.FC<XFormEditorProps> = ({
             F
           </NumberInput>
         </HStack>
-
+        <Flex width="full" direction="row" alignItems="flex-start">
+          <Button onClick={onXFormDelete}>
+            Delete
+          </Button>
+        </Flex>
       </VStack>
     </Container>
   );
@@ -369,6 +376,11 @@ export const App = () => {
   const [live, setLive] = useState(true);
 
   const [batchNumber, setBatchNumber] = useState(0);
+
+  const tabOptions = [
+    { id: 'render', label: 'Render' },
+    { id: 'xforms', label: 'XForms' },
+  ];
 
   return (
     <Container display="flex" py="12" gap="8" justifyContent="center">
@@ -387,26 +399,54 @@ export const App = () => {
             />;
           }}
         </LiveCanvas>
-        <VStack gap="4">
-          <RenderControls
-            iterationOptions={iterationOptions}
-            onIterationOptionsChange={setIterationOptions}
-            postProcessOptions={postProcessOptions}
-            onPostProcessOptionsChange={setPostProcessOptions}
-            xforms={xforms}
-            onXformsChange={setXforms}
-            live={live}
-            onToggleLive={() => setLive(!live)}
-            batchNumber={batchNumber}
-          />
-          {xforms.map((xform, index) => (
-            <XFormEditor key={index} xform={xform} onXformChange={(xform) => {
-              const new_xforms = [...xforms];
-              new_xforms[index] = xform;
-              setXforms(new_xforms);
-            }} />
-          ))}
-        </VStack>
+        <Tabs.Root defaultValue="render">
+          <Tabs.List>
+            {tabOptions.map((tab) => (
+              <Tabs.Trigger key={tab.id} value={tab.id}>
+                {tab.label}
+              </Tabs.Trigger>
+            ))}
+            <Tabs.Indicator />
+          </Tabs.List>
+          <Tabs.Content value="render">
+            <RenderControls
+              iterationOptions={iterationOptions}
+              onIterationOptionsChange={setIterationOptions}
+              postProcessOptions={postProcessOptions}
+              onPostProcessOptionsChange={setPostProcessOptions}
+              xforms={xforms}
+              onXformsChange={setXforms}
+              live={live}
+              onToggleLive={() => setLive(!live)}
+              batchNumber={batchNumber}
+            />
+          </Tabs.Content>
+          <Tabs.Content value="xforms">
+            <Button onClick={() => {
+              setXforms([...xforms, ...defaultXforms()]);
+            }}>
+              Add XForm
+            </Button>
+            <VStack gap="8">
+              {xforms.map((xform, index) => (
+                <XFormEditor
+                  key={index}
+                  xform={xform}
+                  onXformChange={(xform) => {
+                    const new_xforms = [...xforms];
+                    new_xforms[index] = xform;
+                    setXforms(new_xforms);
+                  }}
+                  onXFormDelete={() => {
+                    const new_xforms = [...xforms];
+                    new_xforms.splice(index, 1);
+                    setXforms(new_xforms);
+                  }}
+                />
+              ))}
+            </VStack>
+          </Tabs.Content>
+        </Tabs.Root>
       </HStack>
     </Container>
   );
