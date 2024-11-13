@@ -405,8 +405,10 @@ export const App = () => {
       <HStack gap="4">
         <LiveCanvas>
           {(canvas) => {
-            canvas.width = iterationOptions.width;
-            canvas.height = iterationOptions.height;
+            // canvas.width = iterationOptions.width;
+            // canvas.height = iterationOptions.height;
+            canvas.width = 800;
+            canvas.height = 600;
             return <FractalCanvas
               canvas={canvas}
               xforms={xforms}

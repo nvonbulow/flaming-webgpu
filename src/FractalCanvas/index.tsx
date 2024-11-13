@@ -15,6 +15,7 @@ import { makeFallback } from './Fallback';
 
 import { IterationOptions, PostProcessingOptions, type XForm } from '~/flame';
 import { FractalRendererPipeline } from './FractalRendererPipeline';
+import { Element, Layout, UI } from '@use-gpu/layout';
 
 const FONTS = [
   {
@@ -77,11 +78,27 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas, ...props }) => {
           {(texture: StorageTarget) => (
             <CanvasSkeleton canvas={canvas} >
               <Loop live>
-                <FlatCamera>
+                <Camera>
                   <Pass>
-                    <DebugField texture={texture} />
+                    {/*<VisualizeFullScreen texture={texture} />*/}
+                    <UI>
+                      <Layout>
+                        <VisualizeElement texture={texture} />
+                      </Layout>
+                    </UI>
+                    {/*
+                    <Plot>
+                      <Transform position={[100, 100]}>
+                        <Point
+                          position={[0, 0]}
+                          size={20}
+                          color="#ff0000"
+                        />
+                      </Transform>
+                    </Plot>
+                    */}
                   </Pass>
-                </FlatCamera>
+                </Camera>
               </Loop>
             </CanvasSkeleton>
           )}
@@ -110,13 +127,26 @@ const debugShader = wgsl`
   }
 `;
 
-const DebugField = ({ texture }: { texture: StorageTarget }) => {
+const VisualizeFullScreen = ({ texture }: { texture: StorageTarget }) => {
   const boundShader = useShader(debugShader, [texture]);
   const textureSource = useLambdaSource(boundShader, texture);
   return (
     <RawFullScreen texture={textureSource} />
   );
 };
+
+const VisualizeElement = ({ texture }: { texture: StorageTarget }) => {
+  const boundShader = useShader(debugShader, [texture]);
+  const textureSource = useLambdaSource(boundShader, texture);
+  return (
+    <Element
+      width={texture.size[0]}
+      height={texture.size[1]}
+      image={{ fit: 'scale' }}
+      texture={textureSource}
+    />
+  );
+}
 
 // Wrap this in its own component to avoid JSX trashing of the view
 type CameraProps = PropsWithChildren<object>;
