@@ -9,7 +9,7 @@ import { NumberInput } from './components/ui/number-input';
 import { Button } from './components/ui/button';
 import { Tabs } from './components/ui/tabs';
 import { Card } from './components/ui/card';
-import { mat3 } from 'gl-matrix';
+import { mat2d } from 'gl-matrix';
 
 const defaultIterationOptions = (): IterationOptions => ({
   width: 800,
@@ -360,16 +360,15 @@ export const XFormEditor: React.FC<XFormEditorProps> = ({
       <HStack gap="4">
         <Button
           onClick={() => {
-            const affine = mat3.fromValues(a, d, 0, b, e, 0, c, f, 1);
-            const rotation = mat3.fromRotation(mat3.create(), Math.PI / 4);
-            const rotated = mat3.multiply(mat3.create(), rotation, affine);
+            const affine = mat2d.fromValues(a, d, b, e, c, f);
+            const rotated = mat2d.rotate(mat2d.create(), affine, Math.PI / 4);
 
             // todo: we may as well change the affine to use mat3 in the first place
             onXformChange({
               ...xform,
               affine: [
-                rotated[0], rotated[3], rotated[6],
-                rotated[1], rotated[4], rotated[7],
+                rotated[0], rotated[2], rotated[4],
+                rotated[1], rotated[3], rotated[5],
               ],
             });
           }}
