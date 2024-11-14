@@ -15,8 +15,7 @@ import { makeFallback } from './Fallback';
 
 import { IterationOptions, PostProcessingOptions, type XForm } from '~/flame';
 import { FractalRendererPipeline } from './FractalRendererPipeline';
-import { Element, Layout, UI } from '@use-gpu/layout';
-import { Plot, Point, Transform } from '@use-gpu/plot';
+import { Element } from '@use-gpu/layout';
 import { FractalUiLayer } from './FractalUiLayer';
 
 const FONTS = [
@@ -63,9 +62,14 @@ interface FractalCanvasProps {
   postProcessOptions: PostProcessingOptions;
   live?: boolean;
   onRenderBatch?: (count: number) => void;
+  showUi?: boolean;
 }
 
-export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas, ...props }) => {
+export const FractalCanvas: LC<FractalCanvasProps> = ({
+  canvas,
+  showUi = false,
+  ...props
+}) => {
   const root = document.querySelector('#use-gpu')!;
 
   // This is for the UseInspect inspector only
@@ -80,7 +84,7 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas, ...props }) => {
           {(texture: StorageTarget) => (
             <CanvasSkeleton canvas={canvas} >
               <Loop live>
-                <Camera>
+                <FlatCamera>
                   <Pass>
                     {/*
                     <UI>
@@ -90,11 +94,14 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas, ...props }) => {
                     </UI>
                     */}
                     <VisualizeFullScreen texture={texture} />
-                    <FractalUiLayer
-                      xforms={props.xforms}
-                    />
+                    {showUi && 
+                      <FractalUiLayer
+                        xforms={props.xforms}
+                        iterationOptions={props.iterationOptions}
+                      />
+                    }
                   </Pass>
-                </Camera>
+                </FlatCamera>
               </Loop>
             </CanvasSkeleton>
           )}
@@ -104,12 +111,6 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas, ...props }) => {
   );
 };
 FractalCanvas.displayName = 'FractalCanvas';
-
-export interface FractalCanvasInternalProps {
-  xforms: XForm[];
-  iterationOptions: IterationOptions;
-  postProcessOptions: PostProcessingOptions;
-};
 
 const debugShader = wgsl`
   @link var texture: texture_2d<f32>;

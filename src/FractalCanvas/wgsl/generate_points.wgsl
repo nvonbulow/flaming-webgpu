@@ -44,6 +44,7 @@ fn getYRange() -> vec2<f32> {
   return range_y;
 }
 
+// todo: compute in JS and pass as uniform
 fn scaleMatrix() -> mat3x3<f32> {
   let size = getHistogramSize();
   let range_x = getXRange();

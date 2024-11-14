@@ -10,6 +10,7 @@ import { Button } from './components/ui/button';
 import { Tabs } from './components/ui/tabs';
 import { Card } from './components/ui/card';
 import { mat2d } from 'gl-matrix';
+import { Checkbox } from './components/ui/checkbox';
 
 const defaultIterationOptions = (): IterationOptions => ({
   width: 800,
@@ -398,17 +399,20 @@ export const App = () => {
   const tabOptions = [
     { id: 'render', label: 'Render' },
     { id: 'xforms', label: 'XForms' },
+    { id: 'ui', label: 'UI' },
   ];
+
+  const [showUi, setShowUi] = useState(true);
 
   return (
     <Container display="flex" py="12" gap="8" justifyContent="center" height="svh">
       <HStack gap="4">
         <LiveCanvas>
           {(canvas) => {
-            // canvas.width = iterationOptions.width;
-            // canvas.height = iterationOptions.height;
-            canvas.width = 800;
-            canvas.height = 600;
+            canvas.width = iterationOptions.width;
+            canvas.height = iterationOptions.height;
+            // canvas.width = 800;
+            // canvas.height = 600;
             return <FractalCanvas
               canvas={canvas}
               xforms={xforms}
@@ -416,6 +420,7 @@ export const App = () => {
               postProcessOptions={postProcessOptions}
               live={live}
               onRenderBatch={setBatchNumber}
+              showUi={showUi}
             />;
           }}
         </LiveCanvas>
@@ -430,6 +435,14 @@ export const App = () => {
               <Tabs.Indicator />
             </Tabs.List>
             <Box overflowY="scroll">
+              <Tabs.Content value="ui">
+                <Checkbox
+                  checked={showUi}
+                  onChange={() => setShowUi(!showUi)}
+                >
+                  Show UI
+                </Checkbox>
+              </Tabs.Content>
               <Tabs.Content value="render">
                 <RenderControls
                   iterationOptions={iterationOptions}

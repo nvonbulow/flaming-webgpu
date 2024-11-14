@@ -1,4 +1,4 @@
-import React, {
+import {
   type ElementType,
   type ForwardRefExoticComponent,
   type PropsWithoutRef,
