@@ -16,6 +16,8 @@ import { makeFallback } from './Fallback';
 import { IterationOptions, PostProcessingOptions, type XForm } from '~/flame';
 import { FractalRendererPipeline } from './FractalRendererPipeline';
 import { Element, Layout, UI } from '@use-gpu/layout';
+import { Plot, Point, Transform } from '@use-gpu/plot';
+import { FractalUiLayer } from './FractalUiLayer';
 
 const FONTS = [
   {
@@ -80,23 +82,17 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({ canvas, ...props }) => {
               <Loop live>
                 <Camera>
                   <Pass>
-                    {/*<VisualizeFullScreen texture={texture} />*/}
+                    {/*
                     <UI>
                       <Layout>
                         <VisualizeElement texture={texture} />
                       </Layout>
                     </UI>
-                    {/*
-                    <Plot>
-                      <Transform position={[100, 100]}>
-                        <Point
-                          position={[0, 0]}
-                          size={20}
-                          color="#ff0000"
-                        />
-                      </Transform>
-                    </Plot>
                     */}
+                    <VisualizeFullScreen texture={texture} />
+                    <FractalUiLayer
+                      xforms={props.xforms}
+                    />
                   </Pass>
                 </Camera>
               </Loop>
