@@ -39,3 +39,11 @@ export const PostProcessingOptionsSchema = z.object({
 });
 export type PostProcessingOptions = z.infer<typeof PostProcessingOptionsSchema>;
 
+export const PaletteColor = z.array(
+  z.number().min(0).max(1),
+).length(3);
+export type PaletteColor = z.infer<typeof PaletteColor>;
+
+export const PaletteSchema = z.array(PaletteColor);
+export type Palette = z.infer<typeof PaletteSchema>;
+

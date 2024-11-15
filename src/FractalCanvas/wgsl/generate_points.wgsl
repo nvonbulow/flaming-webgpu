@@ -10,7 +10,10 @@ use './random'::{ seed, rand, frand, hash };
 @link fn getHistogramSize() -> vec2<u32> {}
 @link fn getCameraMatrix() -> mat3x3<f32> {}
 @link fn getBatchSize() -> u32 {}
+@link fn getPaletteSize() -> u32 {}
 @link var<storage> xforms: array<XForm>;
+// palette of colors
+@link var<storage> cmap: array<vec3<f32>>;
 
 @link var<storage, read_write> histogram: Histogram;
 
@@ -26,8 +29,16 @@ fn hsv2rgb(c: vec3<f32>) -> vec3<f32> {
     return c.z * mix(K.xxx, clamp(p - K.xxx, vec3(0.0), vec3(1.0)), c.y);
 }
 
+fn sample_cmap(col: f32) -> vec3<f32> {
+  let c = col; //0.8
+  // for some reason arraySize is returning the wrong length
+  var paletteSize = getPaletteSize();
+  var idx = u32(round(c * f32(paletteSize - 1)));
+  return cmap[idx];
+}
+
 // HSV, full saturation and value
-fn sample_cmap(c: f32) -> vec3<f32> {
+fn sample_cmap_hsv(c: f32) -> vec3<f32> {
   return hsv2rgb(vec3<f32>(c, 1.0, 1.0));
 }
 

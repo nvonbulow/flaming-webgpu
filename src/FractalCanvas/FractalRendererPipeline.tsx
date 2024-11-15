@@ -1,6 +1,6 @@
 import React, { Gather, LC, LiveElement, Provide, useMemo, useResource } from "@use-gpu/live";
-import { ComputeBuffer, Kernel, RenderContext, Stage, StructData, Suspense, TextureBuffer, useDeviceContext } from "@use-gpu/workbench";
-import { getCameraMatrix, IterationOptions, normalizeXForms, PostProcessingOptions, XForm } from "~/flame";
+import { ComputeBuffer, Kernel, RawData, RawTexture, RenderContext, Stage, StructData, Suspense, TextureBuffer, useDeviceContext } from "@use-gpu/workbench";
+import { generateRainbowPalette, getCameraMatrix, IterationOptions, normalizeXForms, PostProcessingOptions, XForm } from "~/flame";
 
 import { main as generatePoints } from './wgsl/generate_points.wgsl';
 import { main as downsampleHistogram } from './wgsl/histogram_supersample.wgsl';
@@ -31,6 +31,27 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
 
   const normalizedXForms = useMemo(() => normalizeXForms(xforms), [xforms]);
 
+  const cameraMatrix = useMemo(() =>
+    getCameraMatrix({
+      viewportSize: [
+        iterationOptions.width * iterationOptions.supersample,
+        iterationOptions.height * iterationOptions.supersample,
+      ],
+      camera: [
+        iterationOptions.camera_x,
+        iterationOptions.camera_y,
+        iterationOptions.camera_zoom,
+      ],
+    }),
+    [iterationOptions],
+  );
+
+  const palette = useMemo(() => generateRainbowPalette(), []);
+
+  const paletteData = useMemo(() => 
+    palette.flat(),
+  [palette]);
+
   return (
     <Provide context={RenderContext} value={{ width: iterationOptions.width, height: iterationOptions.height }}>
       <Gather
@@ -48,8 +69,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
             label="histogram"
             // HistogramBucket type
             format="vec4<u32>"
-            width={iterationOptions.width * iterationOptions.supersample}
-            height={iterationOptions.height * iterationOptions.supersample}
+            resolution={iterationOptions.supersample}
           />,
           // downsampled histogram
           <ComputeBuffer
@@ -74,6 +94,12 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
             width={iterationOptions.width}
             height={iterationOptions.height}
           />,
+          <RawData
+            key="palette"
+            data={paletteData}
+            length={palette.length}
+            format="vec3<f32>"
+          />,
         ]}
         then={([
           xforms_buf,
@@ -81,8 +107,9 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
           downsampled_histogram_buf,
           histogram_max_buf,
           texture_out,
+          palette_buf,
         ]: StorageTarget[]) => {
-
+          console.log('palette_buf', palette_buf);
           const device = useDeviceContext();
           return <>
             <ComputeLoop
@@ -99,9 +126,9 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
                 }, [iterationOptions, postProcessOptions, normalizedXForms]);
                 return (
                   <Suspense>
-                    <Stage targets={[histogram_buf]}>
+                    <Stage targets={[histogram_buf, palette]}>
                       <Kernel
-                        sources={[xforms_buf]}
+                        sources={[xforms_buf, palette_buf]}
                         shader={generatePoints as any}
                         args={[
                           tick,
@@ -111,18 +138,9 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
                             iterationOptions.height * iterationOptions.supersample
                           ],
                           // scale matrix
-                          getCameraMatrix({
-                            viewportSize: [
-                              iterationOptions.width * iterationOptions.supersample,
-                              iterationOptions.height * iterationOptions.supersample,
-                            ],
-                            camera: [
-                              iterationOptions.camera_x,
-                              iterationOptions.camera_y,
-                              iterationOptions.camera_zoom,
-                            ],
-                          }),
+                          cameraMatrix,
                           iterationOptions.batch_size,
+                          palette.length,
                         ]}
                         // number of threads
                         size={[iterationOptions.parallelism]}
