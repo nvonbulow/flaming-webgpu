@@ -30,11 +30,13 @@ fn hsv2rgb(c: vec3<f32>) -> vec3<f32> {
 }
 
 fn sample_cmap(col: f32) -> vec3<f32> {
-  let c = col; //0.8
+  let c = col;
   // for some reason arraySize is returning the wrong length
   var paletteSize = getPaletteSize();
-  var idx = u32(round(c * f32(paletteSize - 1)));
-  return cmap[idx];
+  var idx = c * f32(paletteSize - 1);
+  var c1 = cmap[u32(floor(idx))];
+  var c2 = cmap[u32(ceil(idx))];
+  return mix(c1, c2, fract(idx));
 }
 
 // HSV, full saturation and value
