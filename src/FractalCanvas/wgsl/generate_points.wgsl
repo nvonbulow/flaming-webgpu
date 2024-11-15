@@ -8,60 +8,15 @@ use './random'::{ seed, rand, frand, hash };
 // random seed
 @link fn getSeed() -> u32 {}
 @link fn getHistogramSize() -> vec2<u32> {}
-// <center_x, center_y, zoom>
-@link fn getCamera() -> vec3<f32> {}
+@link fn getCameraMatrix() -> mat3x3<f32> {}
 @link fn getBatchSize() -> u32 {}
 @link var<storage> xforms: array<XForm>;
 
 @link var<storage, read_write> histogram: Histogram;
 
-fn getXRange() -> vec2<f32> {
-  let camera = getCamera();
-  let inv_zoom = 1.0 / camera.z;
-  let center_x = camera.x;
-
-  let range_x = vec2<f32>(
-    center_x - inv_zoom,
-    center_x + inv_zoom,
-  );
-
-  return range_x;
-}
-
-fn getYRange() -> vec2<f32> {
-  let camera = getCamera();
-  let inv_zoom = 1.0 / camera.z;
-  let center_y = camera.y;
-
-  let histogram_size = getHistogramSize();
-  let inv_aspect_ratio = f32(histogram_size.y) / f32(histogram_size.x);
-
-  let range_y = vec2<f32>(
-    center_y - inv_zoom * inv_aspect_ratio,
-    center_y + inv_zoom * inv_aspect_ratio,
-  );
-  
-  return range_y;
-}
-
-// todo: compute in JS and pass as uniform
-fn scaleMatrix() -> mat3x3<f32> {
-  let size = getHistogramSize();
-  let range_x = getXRange();
-  let range_y = getYRange();
-  let x_factor = f32(size.x - 1) / (range_x.y - range_x.x);
-  let y_factor = f32(size.y - 1) / (range_y.x - range_y.y);
-
-  return mat3x3<f32>(
-    x_factor,      0.0, -x_factor * range_x.x,
-         0.0, y_factor, -y_factor * range_y.y,
-         0.0,      0.0,                   1.0,
-  );
-}
-
 fn scalePoint(p: vec2<f32>) -> vec2<i32> {
-  let scale = scaleMatrix();
-  let scaled = vec3<f32>(p, 1.0) * scale;
+  let scale = getCameraMatrix();
+  let scaled = scale * vec3<f32>(p, 1.0);
   return vec2<i32>(round(scaled).xy);
 }
 

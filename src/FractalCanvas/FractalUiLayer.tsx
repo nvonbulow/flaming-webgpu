@@ -76,7 +76,7 @@ export const FractalUiLayer: LC<FractalUiLayerProps> = ({
       camera: [camera_x, camera_y, camera_zoom],
     });
 
-    return vec2.transformMat3(vec2.create(), origin, cameraMat);
+    return vec2.transformMat3(vec2.create(), vec2.fromValues(0, 0), cameraMat);
   }, [ camera_x, camera_y, camera_zoom, width, height ]);
 
   return (

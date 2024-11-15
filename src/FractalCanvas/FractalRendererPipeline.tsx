@@ -1,6 +1,6 @@
 import React, { Gather, LC, LiveElement, Provide, useMemo, useResource } from "@use-gpu/live";
 import { ComputeBuffer, Kernel, RenderContext, Stage, StructData, Suspense, TextureBuffer, useDeviceContext } from "@use-gpu/workbench";
-import { IterationOptions, normalizeXForms, PostProcessingOptions, XForm } from "~/flame";
+import { getCameraMatrix, IterationOptions, normalizeXForms, PostProcessingOptions, XForm } from "~/flame";
 
 import { main as generatePoints } from './wgsl/generate_points.wgsl';
 import { main as downsampleHistogram } from './wgsl/histogram_supersample.wgsl';
@@ -105,16 +105,23 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
                         shader={generatePoints as any}
                         args={[
                           tick,
+                          // histogram size
                           [
                             iterationOptions.width * iterationOptions.supersample,
                             iterationOptions.height * iterationOptions.supersample
                           ],
-                          // camera options
-                          [
-                            iterationOptions.camera_x,
-                            iterationOptions.camera_y,
-                            iterationOptions.camera_zoom
-                          ],
+                          // scale matrix
+                          getCameraMatrix({
+                            viewportSize: [
+                              iterationOptions.width * iterationOptions.supersample,
+                              iterationOptions.height * iterationOptions.supersample,
+                            ],
+                            camera: [
+                              iterationOptions.camera_x,
+                              iterationOptions.camera_y,
+                              iterationOptions.camera_zoom,
+                            ],
+                          }),
                           iterationOptions.batch_size,
                         ]}
                         // number of threads
