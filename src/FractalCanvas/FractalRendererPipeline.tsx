@@ -1,6 +1,6 @@
 import React, { Gather, LC, LiveElement, Provide, useMemo, useResource } from "@use-gpu/live";
 import { ComputeBuffer, Kernel, RawData, RawTexture, RenderContext, Stage, StructData, Suspense, TextureBuffer, useDeviceContext } from "@use-gpu/workbench";
-import { generateFireDragon, generateRainbowPalette, getCameraMatrix, IterationOptions, normalizeXForms, PostProcessingOptions, XForm } from "~/flame";
+import { generateFireDragon, generateRainbowPalette, getCameraMatrix, getPalette, IterationOptions, normalizeXForms, PostProcessingOptions, XForm } from "~/flame";
 
 import { main as generatePoints } from './wgsl/generate_points.wgsl';
 import { main as downsampleHistogram } from './wgsl/histogram_supersample.wgsl';
@@ -46,11 +46,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
     [iterationOptions],
   );
 
-  const palette = useMemo(() => generateFireDragon(), []);
-
-  const paletteData = useMemo(() => 
-    palette.flat(),
-  [palette]);
+  const paletteData = useMemo(() => getPalette('ice-dragon').colors, []);
 
   return (
     <Provide context={RenderContext} value={{ width: iterationOptions.width, height: iterationOptions.height }}>
@@ -97,7 +93,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
           <RawData
             key="palette"
             data={paletteData}
-            length={palette.length}
+            length={paletteData.length / 3}
             format="vec3<f32>"
           />,
         ]}
@@ -109,7 +105,6 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
           texture_out,
           palette_buf,
         ]: StorageTarget[]) => {
-          console.log('palette_buf', palette_buf);
           const device = useDeviceContext();
           return <>
             <ComputeLoop
@@ -126,7 +121,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
                 }, [iterationOptions, postProcessOptions, normalizedXForms]);
                 return (
                   <Suspense>
-                    <Stage targets={[histogram_buf, palette]}>
+                    <Stage targets={[histogram_buf]}>
                       <Kernel
                         sources={[xforms_buf, palette_buf]}
                         shader={generatePoints as any}
@@ -140,7 +135,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
                           // scale matrix
                           cameraMatrix,
                           iterationOptions.batch_size,
-                          palette.length,
+                          paletteData.length / 3,
                         ]}
                         // number of threads
                         size={[iterationOptions.parallelism]}

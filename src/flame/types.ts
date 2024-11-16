@@ -44,6 +44,20 @@ export const PaletteColor = z.array(
 ).length(3);
 export type PaletteColor = z.infer<typeof PaletteColor>;
 
-export const PaletteSchema = z.array(PaletteColor);
+export const RawPaletteSchema = z.instanceof(Float32Array)
+  .refine(
+    arr => arr.length % 3 === 0,
+    'Palette must have a length that is a multiple of 3',
+  )
+  .refine(
+    arr => arr.every(i => i >= 0 && i <= 1),
+    'Palette must have normalized values between 0 and 1',
+  );
+export type RawPalette = z.infer<typeof RawPaletteSchema>;
+
+export const PaletteSchema = z.object({
+  name: z.string(),
+  colors: RawPaletteSchema,
+});
 export type Palette = z.infer<typeof PaletteSchema>;
 
