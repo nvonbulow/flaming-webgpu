@@ -1,6 +1,6 @@
 import React, { Gather, LC, LiveElement, Provide, useMemo, useResource } from "@use-gpu/live";
-import { ComputeBuffer, Kernel, RawData, RawTexture, RenderContext, Stage, StructData, Suspense, TextureBuffer, useDeviceContext } from "@use-gpu/workbench";
-import { generateFireDragon, generateRainbowPalette, getCameraMatrix, getPalette, IterationOptions, normalizeXForms, PostProcessingOptions, XForm } from "~/flame";
+import { ComputeBuffer, Kernel, RawData, RenderContext, Stage, StructData, Suspense, TextureBuffer, useDeviceContext } from "@use-gpu/workbench";
+import { getCameraMatrix, getPalette, IterationOptions, normalizeXForms, PostProcessingOptions, XForm } from "~/flame";
 
 import { main as generatePoints } from './wgsl/generate_points.wgsl';
 import { main as downsampleHistogram } from './wgsl/histogram_supersample.wgsl';
@@ -29,27 +29,32 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
   onRenderBatch,
 }) => {
 
+  const {
+    width, height, supersample,
+    palette: { colors: palette },
+    camera_x, camera_y, camera_zoom,
+    batch_size, batch_limit, parallelism,
+  } = iterationOptions;
+
   const normalizedXForms = useMemo(() => normalizeXForms(xforms), [xforms]);
 
   const cameraMatrix = useMemo(() =>
     getCameraMatrix({
       viewportSize: [
-        iterationOptions.width * iterationOptions.supersample,
-        iterationOptions.height * iterationOptions.supersample,
+        width * supersample,
+        height * supersample,
       ],
       camera: [
-        iterationOptions.camera_x,
-        iterationOptions.camera_y,
-        iterationOptions.camera_zoom,
+        camera_x,
+        camera_y,
+        camera_zoom,
       ],
     }),
-    [iterationOptions],
+    [width, height, supersample, camera_x, camera_y, camera_zoom],
   );
 
-  const paletteData = useMemo(() => getPalette('ice-dragon').colors, []);
-
   return (
-    <Provide context={RenderContext} value={{ width: iterationOptions.width, height: iterationOptions.height }}>
+    <Provide context={RenderContext} value={{ width, height }}>
       <Gather
         children={[
           // xforms
@@ -65,7 +70,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
             label="histogram"
             // HistogramBucket type
             format="vec4<u32>"
-            resolution={iterationOptions.supersample}
+            resolution={supersample}
           />,
           // downsampled histogram
           <ComputeBuffer
@@ -73,8 +78,8 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
             label="downsampled_histogram"
             // HistogramBucket type
             format="vec4<u32>"
-            width={iterationOptions.width}
-            height={iterationOptions.height}
+            width={width}
+            height={height}
           />,
           <ComputeBuffer
             key="histogram_max"
@@ -87,13 +92,13 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
           <TextureBuffer
             key="texture"
             format="rgba32float"
-            width={iterationOptions.width}
-            height={iterationOptions.height}
+            width={width}
+            height={height}
           />,
           <RawData
             key="palette"
-            data={paletteData}
-            length={paletteData.length / 3}
+            data={palette}
+            length={palette.length / 3}
             format="vec3<f32>"
           />,
         ]}
@@ -110,7 +115,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
             <ComputeLoop
               live={live}
               batch={1}
-              limit={iterationOptions.batch_limit}
+              limit={batch_limit}
               continued
               then={(tick) => (onRenderBatch?.(tick), null)}
             >
@@ -129,16 +134,16 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
                           tick,
                           // histogram size
                           [
-                            iterationOptions.width * iterationOptions.supersample,
-                            iterationOptions.height * iterationOptions.supersample
+                            width * supersample,
+                            height * supersample
                           ],
                           // scale matrix
                           cameraMatrix,
-                          iterationOptions.batch_size,
-                          paletteData.length / 3,
+                          batch_size,
+                          palette.length / 3,
                         ]}
                         // number of threads
-                        size={[iterationOptions.parallelism]}
+                        size={[parallelism]}
                       />
                     </Stage>
                     <Stage target={downsampled_histogram_buf}>
@@ -146,7 +151,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
                         source={histogram_buf}
                         shader={downsampleHistogram as any}
                         size={downsampled_histogram_buf.size}
-                        args={[iterationOptions.supersample]}
+                        args={[supersample]}
                       />
                     </Stage>
                     <Stage target={histogram_max_buf}>
@@ -154,7 +159,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
                         source={downsampled_histogram_buf}
                         shader={histogramMax as any}
                         // 64 threads
-                        size={[iterationOptions.parallelism]}
+                        size={[parallelism]}
                         args={[histogram_buf.size]}
                       />
                     </Stage>

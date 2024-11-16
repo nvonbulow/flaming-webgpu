@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { FractalCanvas } from './FractalCanvas';
 import { Box, Container, Flex, HStack, VStack } from 'styled-system/jsx';
 import { Slider } from './components/ui/slider';
-import { IterationOptions, PostProcessingOptions, XForm } from './flame';
+import { getPalette, IterationOptions, PostProcessingOptions, XForm } from './flame';
 import { barnsleyFern, sierpinskiTriangle } from './flame/generators';
 import { NumberInput } from './components/ui/number-input';
 import { Button } from './components/ui/button';
@@ -16,6 +16,7 @@ const defaultIterationOptions = (): IterationOptions => ({
   width: 800,
   height: 600,
   supersample: 2,
+  palette: getPalette('fire-dragon'),
   camera_x: 0,
   camera_y: 0,
   camera_zoom: 1,

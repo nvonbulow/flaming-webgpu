@@ -25,6 +25,9 @@ export const IterationOptionsSchema = z.object({
   // and a y range scaled to the aspect ratio
   camera_zoom: z.number().default(1),
 
+  // Color palette
+  palette: z.lazy(() => PaletteSchema),
+
   // number of iterations to run per thread each batch
   batch_size: z.number().int().positive().default(1000),
   // number of threads to run in
