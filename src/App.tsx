@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { FractalCanvas } from './FractalCanvas';
 import { Box, Container, Flex, HStack, VStack } from 'styled-system/jsx';
 import { Slider } from './components/ui/slider';
-import { getPalette, IterationOptions, PostProcessingOptions, XForm } from './flame';
+import { getPalette, IterationOptions, Palette, PostProcessingOptions, XForm } from './flame';
 import { barnsleyFern, sierpinskiTriangle } from './flame/generators';
 import { NumberInput } from './components/ui/number-input';
 import { Button } from './components/ui/button';
@@ -11,6 +11,8 @@ import { Tabs } from './components/ui/tabs';
 import { Card } from './components/ui/card';
 import { mat2d } from 'gl-matrix';
 import { Checkbox } from './components/ui/checkbox';
+import { createListCollection, Select } from './components/ui/select';
+import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react';
 
 const defaultIterationOptions = (): IterationOptions => ({
   width: 800,
@@ -387,6 +389,53 @@ export const XFormEditor: React.FC<XFormEditorProps> = ({
   );
 };
 
+type PaletteEditorProps = {
+  palette: Palette;
+  onPaletteChange: (palette: Palette) => void;
+};
+
+const PaletteEditor: React.FC<PaletteEditorProps> = ({ palette, onPaletteChange }) => {
+
+  const collection = createListCollection({
+    items: [
+      { label: 'fire-dragon', value: 'fire-dragon' },
+      { label: 'ice-dragon', value: 'ice-dragon' },
+    ],
+  });
+
+  return (
+    <VStack gap="4">
+      <Select.Root
+        collection={collection}
+        value={[palette.name]}
+        onValueChange={(details) => onPaletteChange(getPalette(details.value[0]))}
+      >
+        <Select.Label>
+          Palette
+        </Select.Label>
+        <Select.Control>
+          <Select.Trigger>
+            <Select.ValueText placeholder="Select a palette" />
+            <ChevronsUpDownIcon />
+          </Select.Trigger>
+        </Select.Control>
+        <Select.Positioner>
+          <Select.Content>
+            {collection.items.map((item) => (
+              <Select.Item key={item.value} item={item}>
+                <Select.ItemText>{item.label}</Select.ItemText>
+                <Select.ItemIndicator>
+                  <CheckIcon />
+                </Select.ItemIndicator>
+              </Select.Item>
+            ))}
+          </Select.Content>
+        </Select.Positioner>
+      </Select.Root>
+    </VStack>
+  );
+};
+
 
 export const App = () => {
   const [iterationOptions, setIterationOptions] = useState(defaultIterationOptions());
@@ -401,6 +450,7 @@ export const App = () => {
     { id: 'render', label: 'Render' },
     { id: 'xforms', label: 'XForms' },
     { id: 'ui', label: 'UI' },
+    { id: 'palette', label: 'Palette' },
   ];
 
   const [showUi, setShowUi] = useState(true);
@@ -489,6 +539,17 @@ export const App = () => {
                     </Card.Root>
                   ))}
                 </VStack>
+              </Tabs.Content>
+              <Tabs.Content value="palette">
+                <PaletteEditor
+                  palette={iterationOptions.palette}
+                  onPaletteChange={(palette) => {
+                    setIterationOptions({
+                      ...iterationOptions,
+                      palette,
+                    });
+                  }}
+                />
               </Tabs.Content>
             </Box>
           </Tabs.Root>
