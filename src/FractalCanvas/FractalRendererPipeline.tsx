@@ -1,6 +1,6 @@
 import React, { Gather, LC, LiveElement, Provide, useMemo, useResource } from "@use-gpu/live";
 import { ComputeBuffer, Kernel, RawData, RawTexture, RenderContext, Stage, StructData, Suspense, TextureBuffer, useDeviceContext } from "@use-gpu/workbench";
-import { generateRainbowPalette, getCameraMatrix, IterationOptions, normalizeXForms, PostProcessingOptions, XForm } from "~/flame";
+import { generateFireDragon, generateRainbowPalette, getCameraMatrix, IterationOptions, normalizeXForms, PostProcessingOptions, XForm } from "~/flame";
 
 import { main as generatePoints } from './wgsl/generate_points.wgsl';
 import { main as downsampleHistogram } from './wgsl/histogram_supersample.wgsl';
@@ -46,7 +46,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
     [iterationOptions],
   );
 
-  const palette = useMemo(() => generateRainbowPalette(), []);
+  const palette = useMemo(() => generateFireDragon(), []);
 
   const paletteData = useMemo(() => 
     palette.flat(),
