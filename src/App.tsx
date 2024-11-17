@@ -511,7 +511,7 @@ export const App = () => {
               ))}
               <Tabs.Indicator />
             </Tabs.List>
-            <Box overflowY="scroll">
+            <Box overflowY="scroll" h="full">
               <Tabs.Content value="ui">
                 <Checkbox
                   checked={showUi}
