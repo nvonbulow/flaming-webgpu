@@ -19,13 +19,11 @@ function parsePaletteData(encodedData: string): RawPalette {
   return new Float32Array(data).map(i => i / 255);
 }
 
-export function getPalette(name: string): Palette | undefined {
-  if (name === 'rainbow') {
-    return {
-      name,
-      colors: generateRainbowPalette(),
-    };
-  }
+export function getPresetPaletteNames(): string[] {
+  return [...presetPalettes.map(p => p.name)];
+}
+
+export function getPresetPalette(name: string): Palette | undefined {
   const preset = presetPalettes.find(p => p.name === name);
   return PaletteSchema.parse({
     name,

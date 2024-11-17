@@ -1,9 +1,9 @@
 import { LiveCanvas } from '@use-gpu/react';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { FractalCanvas } from './FractalCanvas';
 import { Box, Container, Flex, HStack, VStack } from 'styled-system/jsx';
 import { Slider } from './components/ui/slider';
-import { getPalette, IterationOptions, Palette, PostProcessingOptions, XForm } from './flame';
+import { getPresetPalette, getPresetPaletteNames, IterationOptions, Palette, PostProcessingOptions, XForm } from './flame';
 import { barnsleyFern, sierpinskiTriangle } from './flame/generators';
 import { NumberInput } from './components/ui/number-input';
 import { Button } from './components/ui/button';
@@ -18,7 +18,7 @@ const defaultIterationOptions = (): IterationOptions => ({
   width: 800,
   height: 600,
   supersample: 2,
-  palette: getPalette('fire-dragon'),
+  palette: getPresetPalette('fire-dragon'),
   camera_x: 0,
   camera_y: 0,
   camera_zoom: 1,
@@ -394,21 +394,34 @@ type PaletteEditorProps = {
   onPaletteChange: (palette: Palette) => void;
 };
 
-const PaletteEditor: React.FC<PaletteEditorProps> = ({ palette, onPaletteChange }) => {
+const generateLinearGradient = (palette: Float32Array) => {
+  // generate a css linear gradient from the palette
+  const colors = [];
+  for (let i = 0; i < palette.length; i += 3) {
+    colors.push(`rgb(${palette[i] * 255}, ${palette[i + 1] * 255}, ${palette[i + 2] * 255})`);
+  }
 
-  const collection = createListCollection({
+  return `linear-gradient(90deg, ${colors.join(', ')})`;
+};
+
+const PaletteEditor: React.FC<PaletteEditorProps> = ({ palette, onPaletteChange }) => {
+  const collection = useMemo(() => createListCollection({
     items: [
-      { label: 'fire-dragon', value: 'fire-dragon' },
-      { label: 'ice-dragon', value: 'ice-dragon' },
+      ...getPresetPaletteNames().map((name) => ({
+        label: name,
+        value: name,
+        gradient: generateLinearGradient(getPresetPalette(name).colors),
+      })),
     ],
-  });
+  }), []);
 
   return (
     <VStack gap="4">
       <Select.Root
+        positioning={{ sameWidth: true }}
         collection={collection}
         value={[palette.name]}
-        onValueChange={(details) => onPaletteChange(getPalette(details.value[0]))}
+        onValueChange={(details) => onPaletteChange(getPresetPalette(details.value[0]))}
       >
         <Select.Label>
           Palette
@@ -420,15 +433,28 @@ const PaletteEditor: React.FC<PaletteEditorProps> = ({ palette, onPaletteChange 
           </Select.Trigger>
         </Select.Control>
         <Select.Positioner>
-          <Select.Content>
-            {collection.items.map((item) => (
-              <Select.Item key={item.value} item={item}>
-                <Select.ItemText>{item.label}</Select.ItemText>
-                <Select.ItemIndicator>
-                  <CheckIcon />
-                </Select.ItemIndicator>
-              </Select.Item>
-            ))}
+          <Select.Content maxH="400" overflowY="scroll">
+            <Select.ItemGroup>
+              {collection.items.map((item) => (
+                <Select.Item key={item.value} item={item} w="full" height="auto">
+                  <Flex direction="column" width="full">
+                    <Flex direction="row" width="full" justifyContent="space-between">
+                      <Select.ItemText>{item.label}</Select.ItemText>
+                      <Select.ItemIndicator>
+                        <CheckIcon />
+                      </Select.ItemIndicator>
+                    </Flex>
+                    <Box
+                      width="full"
+                      height="4"
+                      style={{
+                        background: item.gradient,
+                      }}
+                    />
+                  </Flex>
+                </Select.Item>
+              ))}
+            </Select.ItemGroup>
           </Select.Content>
         </Select.Positioner>
       </Select.Root>

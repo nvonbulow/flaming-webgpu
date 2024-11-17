@@ -1,6 +1,6 @@
 import React, { Gather, LC, LiveElement, Provide, useMemo, useResource } from "@use-gpu/live";
 import { ComputeBuffer, Kernel, RawData, RenderContext, Stage, StructData, Suspense, TextureBuffer, useDeviceContext } from "@use-gpu/workbench";
-import { getCameraMatrix, getPalette, IterationOptions, normalizeXForms, PostProcessingOptions, XForm } from "~/flame";
+import { getCameraMatrix, getPresetPalette, IterationOptions, normalizeXForms, PostProcessingOptions, XForm } from "~/flame";
 
 import { main as generatePoints } from './wgsl/generate_points.wgsl';
 import { main as downsampleHistogram } from './wgsl/histogram_supersample.wgsl';
