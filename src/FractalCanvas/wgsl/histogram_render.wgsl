@@ -39,15 +39,21 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let max = histogram_max;
 
     // log scale with max
-    let alpha = log(f32(bucket.count)) / log(f32(max));
-    var color = vec3(f32(bucket.r), f32(bucket.g), f32(bucket.b));
-    color = color / (f32(bucket.count) + 1.0) / 256.0;
+    let logBucket = select(0, log(f32(bucket.count)), bucket.count > 0);
+    let alpha = logBucket / log(f32(max));
+    var color = vec3(f32(bucket.r), f32(bucket.g), f32(bucket.b)) / 255.0;
+    if (bucket.count == 0) {
+      color = vec3f(0.0);
+    }
+    else {
+      color = color / (f32(bucket.count));
+    } 
 
     // Post processing
     // Gamma correction
-    color = color * pow(alpha, (1.0 / getGamma()));
+    // color = color * pow(alpha, (1.0 / getGamma()));
 
-    // color = gam_sRGB(color) * alpha;
-    
-    textureStore(texture, vec2<u32>(x, y), vec4<f32>(color * alpha, alpha));
+    // color = gam_sRGB(color);
+
+    textureStore(texture, vec2<u32>(x, y), vec4<f32>(color, alpha));
 }

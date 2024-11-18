@@ -39,18 +39,17 @@ export const CanvasSkeleton: LC<PropsWithChildren<CanvasSkeletonProps>> = ({
       canvas={canvas}
       width={canvas.width}
       height={canvas.height}
+      backgroundColor={[0, 0, 0, 1]}
     >
-      <LinearRGB>
-        <PickingTarget>
-          <DOMEvents element={canvas}>
-            <CursorProvider element={canvas}>
-              <FontLoader fonts={FONTS}>
-                {children}
-              </FontLoader>
-            </CursorProvider>
-          </DOMEvents>
-        </PickingTarget>
-      </LinearRGB>
+      <PickingTarget>
+        <DOMEvents element={canvas}>
+          <CursorProvider element={canvas}>
+            <FontLoader fonts={FONTS}>
+              {children}
+            </FontLoader>
+          </CursorProvider>
+        </DOMEvents>
+      </PickingTarget>
     </Canvas>
   );
 };
@@ -84,24 +83,21 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({
           {(texture: StorageTarget) => (
             <CanvasSkeleton canvas={canvas} >
               <Loop live>
-                <FlatCamera>
+                <LinearRGB>
                   <Pass>
-                    {/*
-                    <UI>
-                      <Layout>
-                        <VisualizeElement texture={texture} />
-                      </Layout>
-                    </UI>
-                    */}
                     <VisualizeFullScreen texture={texture} />
-                    {showUi && 
-                      <FractalUiLayer
-                        xforms={props.xforms}
-                        iterationOptions={props.iterationOptions}
-                      />
-                    }
                   </Pass>
-                </FlatCamera>
+                  <FlatCamera>
+                    {showUi && (
+                      <Pass overlay>
+                        <FractalUiLayer
+                          xforms={props.xforms}
+                          iterationOptions={props.iterationOptions}
+                        />
+                      </Pass>
+                    )}
+                  </FlatCamera>
+                </LinearRGB>
               </Loop>
             </CanvasSkeleton>
           )}
@@ -114,18 +110,22 @@ FractalCanvas.displayName = 'FractalCanvas';
 
 const debugShader = wgsl`
   @link var texture: texture_2d<f32>;
+  @link fn getBackground() -> vec3<f32> {};
 
   fn main(uv: vec2<f32>) -> vec4<f32> {
     let size = vec2<f32>(textureDimensions(texture));
 
     let color = textureLoad(texture, vec2<i32>(uv * size), 0);
+    let background = getBackground();
 
-    return color;
+    // mix with background
+    return vec4f(mix(color.rgb, background.rgb, color.a), 1.0);
   }
 `;
 
 const VisualizeFullScreen = ({ texture }: { texture: StorageTarget }) => {
-  const boundShader = useShader(debugShader, [texture]);
+  const background = [0.0, 0.0, 0.0];
+  const boundShader = useShader(debugShader, [texture, background]);
   const textureSource = useLambdaSource(boundShader, texture);
   return (
     <RawFullScreen texture={textureSource} />

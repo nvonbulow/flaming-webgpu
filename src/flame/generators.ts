@@ -44,7 +44,7 @@ export function barnsleyFern(): XForm[] {
     // Repeating leaves
     // <xform weight="0.85" color="0.33" coefs="0.85 -0.04 0.04 0.85 0 1.6"/>
     {
-      variation: 'sinusoidal',
+      variation: 'linear',
       affine: [0.85, 0.04, 0.0,
         -0.04, 0.85, 1.6],
       color: 0.5,
@@ -93,8 +93,7 @@ export function example() {
       weight: 1,
     },
     {
-      // sinusoidal
-      variation: 'horseshoe',
+      variation: 'sinusoidal',
       affine: [0.5, 0.0, 0.5,
         0.0, 0.5, 0.5],
       color: 1,
