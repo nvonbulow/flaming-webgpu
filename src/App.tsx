@@ -13,6 +13,7 @@ import { mat2d } from 'gl-matrix';
 import { Checkbox } from './components/ui/checkbox';
 import { createListCollection, Select } from './components/ui/select';
 import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 const defaultIterationOptions = (): IterationOptions => ({
   width: 800,
@@ -410,10 +411,19 @@ const PaletteEditor: React.FC<PaletteEditorProps> = ({ palette, onPaletteChange 
       ...getPresetPaletteNames().map((name) => ({
         label: name,
         value: name,
-        gradient: generateLinearGradient(getPresetPalette(name).colors),
+        background: generateLinearGradient(getPresetPalette(name).colors),
+        // background: 'white',
       })),
     ],
   }), []);
+
+  const contentRef = React.useRef<HTMLDivElement>(null);
+
+  const virtualizer = useVirtualizer({
+    count: collection.items.length,
+    getScrollElement: () => contentRef.current,
+    estimateSize: () => 40,
+  });
 
   return (
     <VStack gap="4">
@@ -433,9 +443,49 @@ const PaletteEditor: React.FC<PaletteEditorProps> = ({ palette, onPaletteChange 
           </Select.Trigger>
         </Select.Control>
         <Select.Positioner>
-          <Select.Content maxH="400" overflowY="scroll">
-            <Select.ItemGroup>
-              {collection.items.map((item) => (
+          <Select.Content height="400px" overflow="auto" ref={contentRef}>
+            <Select.List
+              w="full"
+              position="relative"
+              style={{
+                height: `${virtualizer.getTotalSize()}px`,
+              }}
+            >
+              {virtualizer.getVirtualItems().map((vitem) => {
+                const item = collection.items[vitem.index];
+                return (
+                  <Select.Item
+                    key={vitem.key}
+                    item={item}
+                    position="absolute"
+                    top={0} left={0} w="full"
+                    style={{
+                      height: `${vitem.size}px`,
+                      transform: `translateY(${vitem.start}px)`,
+                    }}
+                    whiteSpace="nowrap"
+                    overflow="hidden"
+                    textOverflow="ellipsis"
+                  >
+                    <Flex direction="column" width="full">
+                      <Flex direction="row" width="full" justifyContent="space-between">
+                        <Select.ItemText>{item.label}</Select.ItemText>
+                        <Select.ItemIndicator>
+                          <CheckIcon />
+                        </Select.ItemIndicator>
+                      </Flex>
+                      <Box
+                        width="full"
+                        height="4"
+                        style={{
+                          background: item.background,
+                        }}
+                      />
+                    </Flex>
+                  </Select.Item>
+                );
+              })}
+              {/*collection.items.map((item) => (
                 <Select.Item key={item.value} item={item} w="full" height="auto">
                   <Flex direction="column" width="full">
                     <Flex direction="row" width="full" justifyContent="space-between">
@@ -448,13 +498,13 @@ const PaletteEditor: React.FC<PaletteEditorProps> = ({ palette, onPaletteChange 
                       width="full"
                       height="4"
                       style={{
-                        background: item.gradient,
+                        background: item.background,
                       }}
                     />
                   </Flex>
                 </Select.Item>
-              ))}
-            </Select.ItemGroup>
+              ))*/}
+            </Select.List>
           </Select.Content>
         </Select.Positioner>
       </Select.Root>
