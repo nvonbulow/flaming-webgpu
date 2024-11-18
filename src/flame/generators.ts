@@ -111,3 +111,40 @@ export function example() {
   ];
 }
 
+export function test1(): XForm[] {
+  return [
+    {
+      variation: 'spherical',
+      affine: [-0.681206, 0.20769, -0.0416126,
+        -0.0779465, 0.755065, -0.262334],
+      weight: 0.25,
+      color: 1.0,
+      speed: 0.5,
+    },
+    {
+      variation: 'spherical',
+      affine: [0.953766, 0.43268, 0.642503,
+        0.48396, -0.0542476, -0.995898],
+      weight: 0.25,
+      color: 0.66,
+      speed: 0.5,
+    },
+    {
+      variation: 'spherical',
+      affine: [0.840613, 0.318971, 0.905589,
+        -0.816191, -0.430402, 0.909402],
+      weight: 0.25,
+      color: 0.33,
+      speed: 0.5,
+    },
+    {
+      variation: 'spherical',
+      affine: [0.960492, 0.215383, -0.126074,
+        -0.466555, -0.727377, 0.253509],
+      weight: 0.25,
+      color: 0.0,
+      speed: 0.5,
+    },
+  ];
+}
+

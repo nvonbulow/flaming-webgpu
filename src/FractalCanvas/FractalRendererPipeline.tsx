@@ -121,6 +121,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
           />,
           <TextureBuffer
             key="texture"
+            label="Rendered Histogram"
             format="rgba32float"
             width={width}
             height={height}
@@ -137,7 +138,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
           histogram_buf,
           downsampled_histogram_buf,
           histogram_max_buf,
-          texture_out,
+          rendered_hist,
           palette_buf,
         ]: StorageTarget[]) => {
           const device = useDeviceContext();
@@ -193,21 +194,21 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
                         args={[histogram_buf.size]}
                       />
                     </Stage>
-                    <Stage targets={[texture_out]}>
+                    <Stage targets={[rendered_hist]}>
                       <Kernel
                         sources={[downsampled_histogram_buf, histogram_max_buf]}
                         shader={renderHistogram as any}
                         args={[
                           postProcessOptions.gamma,
                         ]}
-                        size={texture_out.size}
+                        size={rendered_hist.size}
                       />
                     </Stage>
                   </Suspense>
                 );
               }}
             </ComputeLoop>
-            {children(texture_out)}
+            {children(rendered_hist)}
           </>;
         }}
       />

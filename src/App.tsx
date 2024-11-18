@@ -4,7 +4,7 @@ import { FractalCanvas } from './FractalCanvas';
 import { Box, Container, Flex, HStack, VStack } from 'styled-system/jsx';
 import { Slider } from './components/ui/slider';
 import { getPresetPalette, getPresetPaletteNames, IterationOptions, Palette, PostProcessingOptions, Variation, XForm } from './flame';
-import { barnsleyFern, example, sierpinskiTriangle } from './flame/generators';
+import { barnsleyFern, example, sierpinskiTriangle, test1 } from './flame/generators';
 import { NumberInput } from './components/ui/number-input';
 import { Button } from './components/ui/button';
 import { Tabs } from './components/ui/tabs';
@@ -121,11 +121,11 @@ const RenderControls: React.FC<RenderControlsProps> = ({
         <Button onClick={() => {
           onIterationOptionsChange({
             ...defaultIterationOptions(),
-            width: 800,
-            height: 800,
+            width: 640,
+            height: 480,
           });
           onPostProcessOptionsChange(defaultPostProcessingOptions());
-          onXformsChange(example());
+          onXformsChange(test1());
         }
         }>
           Example
