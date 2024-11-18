@@ -3,7 +3,7 @@ import React, { useMemo, useState } from 'react';
 import { FractalCanvas } from './FractalCanvas';
 import { Box, Container, Flex, HStack, VStack } from 'styled-system/jsx';
 import { Slider } from './components/ui/slider';
-import { getPresetPalette, getPresetPaletteNames, IterationOptions, Palette, PostProcessingOptions, XForm } from './flame';
+import { getPresetPalette, getPresetPaletteNames, IterationOptions, Palette, PostProcessingOptions, Variation, XForm } from './flame';
 import { barnsleyFern, example, sierpinskiTriangle } from './flame/generators';
 import { NumberInput } from './components/ui/number-input';
 import { Button } from './components/ui/button';
@@ -33,7 +33,7 @@ const defaultPostProcessingOptions = (): PostProcessingOptions => ({
 });
 
 const defaultXforms = (): XForm[] => [{
-  variation_id: 0,
+  variation: 'linear',
   weight: 1.0,
   color: 0.0,
   speed: 0.0,
@@ -248,6 +248,21 @@ export const XFormEditor: React.FC<XFormEditorProps> = ({
 }) => {
   const [a, b, c, d, e, f] = xform.affine;
   const step = 0.01;
+
+  const variationCollection = useMemo(() => createListCollection({
+    items: [
+      'linear', 'sinusoidal', 'spherical', 'swirl',
+      'horseshoe', 'polar', 'handkerchief', 'heart',
+      'disc', 'spiral', 'hyperbolic', 'diamond',
+      'ex', 'julia', 'bent', 'waves',
+      'fisheye', 'popcorn', 'exponential', 'power',
+      'cosine', 'rings', 'fan',
+    ].map((variation) => ({
+      label: variation,
+      value: variation,
+    })),
+  }), []);
+
   return (
     <VStack gap="2" minW="300">
       <Slider
@@ -393,6 +408,50 @@ export const XFormEditor: React.FC<XFormEditorProps> = ({
           Rotate 45 CW
         </Button>
       </HStack>
+      <Select.Root
+        collection={variationCollection}
+        value={[xform.variation]}
+        onValueChange={(details) => {
+          onXformChange({
+            ...xform,
+            variation: details.value[0] as Variation,
+          });
+        }}
+      >
+        <Select.Label>
+          Variation
+        </Select.Label>
+        <Select.Control>
+          <Select.Trigger>
+            <Select.ValueText placeholder="Select a variation" />
+            <ChevronsUpDownIcon />
+          </Select.Trigger>
+        </Select.Control>
+        <Select.Positioner>
+          <Select.Content maxH={400} overflow="auto">
+            <Select.List>
+              {[
+                'linear', 'sinusoidal', 'spherical', 'swirl',
+                'horseshoe', 'polar', 'handkerchief', 'heart',
+                'disc', 'spiral', 'hyperbolic', 'diamond',
+                'ex', 'julia', 'bent', 'waves',
+                'fisheye', 'popcorn', 'exponential', 'power',
+                'cosine', 'rings', 'fan',
+              ].map((variation) => (
+                <Select.Item
+                  key={variation}
+                  item={{
+                    label: variation,
+                    value: variation,
+                  }}
+                >
+                  <Select.ItemText>{variation}</Select.ItemText>
+                </Select.Item>
+              ))}
+            </Select.List>
+          </Select.Content>
+        </Select.Positioner>
+      </Select.Root>
       <Flex width="full" direction="row" alignItems="flex-start">
         <Button onClick={onXFormDelete}>
           Delete

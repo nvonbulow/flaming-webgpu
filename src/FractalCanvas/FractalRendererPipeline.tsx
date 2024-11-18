@@ -11,6 +11,32 @@ import { clearBuffer, StorageTarget } from "@use-gpu/core";
 
 import { ComputeLoop } from "./ComputeLoop";
 
+const variationIdMap = {
+  linear: 0,
+  sinusoidal: 1,
+  spherical: 2,
+  swirl: 3,
+  horseshoe: 4,
+  polar: 5,
+  handkerchief: 6,
+  heart: 7,
+  disc: 8,
+  spiral: 9,
+  hyperbolic: 10,
+  diamond: 11,
+  ex: 12,
+  julia: 13,
+  bent: 14,
+  waves: 15,
+  fisheye: 16,
+  popcorn: 17,
+  exponential: 18,
+  power: 19,
+  cosine: 20,
+  rings: 21,
+  fan: 22,
+};
+
 export interface FractalRendererProps {
   xforms: XForm[];
   iterationOptions: IterationOptions;
@@ -36,7 +62,11 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
     batch_size, batch_limit, parallelism,
   } = iterationOptions;
 
-  const normalizedXForms = useMemo(() => normalizeXForms(xforms), [xforms]);
+  const xformData = useMemo(() => normalizeXForms(xforms).map(xf => ({
+    ...xf,
+    variation: undefined,
+    variation_id: variationIdMap[xf.variation] || 0,
+  })), [xforms]);
 
   const cameraMatrix = useMemo(() =>
     getCameraMatrix({
@@ -62,7 +92,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
             key="xforms"
             format="array<T>"
             type={GpuXForm as any}
-            data={normalizedXForms}
+            data={xformData}
           />,
           // histogram
           <ComputeBuffer
@@ -123,7 +153,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
                 useResource(() => {
                   clearBuffer(device, histogram_buf.buffer);
                   resetCount();
-                }, [iterationOptions, postProcessOptions, normalizedXForms]);
+                }, [iterationOptions, postProcessOptions, xformData]);
                 return (
                   <Suspense>
                     <Stage targets={[histogram_buf]}>

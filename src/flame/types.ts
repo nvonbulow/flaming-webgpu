@@ -1,8 +1,35 @@
 import { z } from 'zod';
 
+const VariationSchema = z.union([
+  z.literal('linear'),
+  z.literal('sinusoidal'),
+  z.literal('spherical'),
+  z.literal('swirl'),
+  z.literal('horseshoe'),
+  z.literal('polar'),
+  z.literal('handkerchief'),
+  z.literal('heart'),
+  z.literal('disc'),
+  z.literal('spiral'),
+  z.literal('hyperbolic'),
+  z.literal('diamond'),
+  z.literal('ex'),
+  z.literal('julia'),
+  z.literal('bent'),
+  z.literal('waves'),
+  z.literal('fisheye'),
+  z.literal('popcorn'),
+  z.literal('exponential'),
+  z.literal('power'),
+  z.literal('cosine'),
+  z.literal('rings'),
+  z.literal('fan'),
+]);
+export type Variation = z.infer<typeof VariationSchema>;
+
 export const XFormSchema = z.object({
   // todo: use a string in the JS world
-  variation_id: z.number(),
+  variation: VariationSchema,
   affine: z.array(z.number()).length(6),
   color: z.number().min(0).max(1),
   speed: z.number(),

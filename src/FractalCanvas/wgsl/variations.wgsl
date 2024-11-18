@@ -3,6 +3,7 @@ use './random'::{ frand };
 const PI = radians(180.0);
 
 @export fn apply_variation(variation_id: u32, affine: mat3x3<f32>, p: vec2f) -> vec2f {
+  // dependent variations are not yet working
   switch (variation_id) {
     case 0u: { return linear(p); }
     case 1u: { return sinusoidal(p); }
@@ -20,17 +21,19 @@ const PI = radians(180.0);
     case 13u: { return julia(p); }
     case 14u: { return bent(p); }
     // dependent
-    case 15u: { return waves(p, affine); }
+    // case 15u: { return waves(p, affine); }
     case 16u: { return fisheye(p); }
     // dependent
-    case 17u: { return popcorn(p, affine); }
+    // case 17u: { return popcorn(p, affine); }
     case 18u: { return exponential(p); }
     case 19u: { return power(p); }
     case 20u: { return cosine(p); }
     // dependent
-    case 21u: { return rings(p, affine); }
+    // case 21u: { return rings(p, affine); }
     // dependent
-    case 22u: { return fan(p, affine); }
+    // case 22u: { return fan(p, affine); }
+
+    // not yet implemented:
     // parametric
     // 23u: { return blob(p); }
     // parametric
