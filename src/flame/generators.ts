@@ -93,7 +93,8 @@ export function example() {
       weight: 1,
     },
     {
-      variation_id: 0,
+      // sinusoidal
+      variation_id: 1,
       affine: [0.5, 0.0, 0.5,
         0.0, 0.5, 0.5],
       color: 1,

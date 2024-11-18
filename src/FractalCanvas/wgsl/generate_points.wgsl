@@ -1,4 +1,5 @@
 use '@use-gpu/wgsl/use/array'::{ sizeToModulus2, packIndex2 };
+use './variations'::{ apply_variation };
 use './types'::{ XForm, Flame, Histogram, HistogramBucket };
 use './random'::{ seed, rand, frand, hash };
 
@@ -75,10 +76,16 @@ fn plot(p: vec3<f32>) {
 }
 
 fn apply_xform(xform: XForm, p: vec3<f32>) -> vec3<f32> {
-  let T = xform.affine;
-  let pt = vec3<f32>(p.xy, 1.0) * T;
-  let color = p.z;
-  let c = mix(color, xform.color, xform.speed);
+  // apply affine transform
+  var pt = (vec3<f32>(p.xy, 1.0) * xform.affine).xy;
+
+  // apply non-linear transform
+  pt = apply_variation(xform.variation_id, xform.affine, pt.xy);
+
+  // todo: post variation
+
+  // Mix in color
+  let c = mix(p.z, xform.color, xform.speed);
   return vec3<f32>(pt.xy, c);
 }
 

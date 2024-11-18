@@ -121,7 +121,8 @@ const RenderControls: React.FC<RenderControlsProps> = ({
         <Button onClick={() => {
           onIterationOptionsChange({
             ...defaultIterationOptions(),
-            camera_zoom: 0.5,
+            width: 800,
+            height: 800,
           });
           onPostProcessOptionsChange(defaultPostProcessingOptions());
           onXformsChange(example());
