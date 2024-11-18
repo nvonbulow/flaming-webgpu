@@ -106,7 +106,7 @@ fn next(p: vec3<f32>) -> vec3<f32> {
   return pt;
 }
 
-@compute @workgroup_size(1)
+@compute @workgroup_size(16)
 fn main(@builtin(global_invocation_id) globalId: vec3<u32>) {
   // unused but needed for linker
   let s = getSize();

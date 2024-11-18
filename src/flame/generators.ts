@@ -74,3 +74,40 @@ export function barnsleyFern(): XForm[] {
   ]
 }
 
+export function example() {
+  return [
+    {
+      variation_id: 0,
+      affine: [0.5, 0.0, 0.0,
+        0.0, 0.5, -0.5],
+      color: 0,
+      speed: 0.5,
+      weight: 1,
+    },
+    {
+      variation_id: 0,
+      affine: [0.5, 0.0, -0.5,
+        0.0, 0.5, 0.5],
+      color: 0,
+      speed: 0.5,
+      weight: 1,
+    },
+    {
+      variation_id: 0,
+      affine: [0.5, 0.0, 0.5,
+        0.0, 0.5, 0.5],
+      color: 1,
+      speed: 0.5,
+      weight: 1,
+    },
+    {
+      variation_id: 0,
+      affine: [-2.0, 0.0, 0.0,
+        0.0, -2.0, 0.0],
+      color: 0,
+      speed: 0.5,
+      weight: 1,
+    },
+  ];
+}
+

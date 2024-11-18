@@ -4,7 +4,7 @@ import { FractalCanvas } from './FractalCanvas';
 import { Box, Container, Flex, HStack, VStack } from 'styled-system/jsx';
 import { Slider } from './components/ui/slider';
 import { getPresetPalette, getPresetPaletteNames, IterationOptions, Palette, PostProcessingOptions, XForm } from './flame';
-import { barnsleyFern, sierpinskiTriangle } from './flame/generators';
+import { barnsleyFern, example, sierpinskiTriangle } from './flame/generators';
 import { NumberInput } from './components/ui/number-input';
 import { Button } from './components/ui/button';
 import { Tabs } from './components/ui/tabs';
@@ -24,7 +24,7 @@ const defaultIterationOptions = (): IterationOptions => ({
   camera_y: 0,
   camera_zoom: 1,
   batch_size: 10000,
-  parallelism: 64,
+  parallelism: 1024,
   batch_limit: 100,
 });
 
@@ -117,6 +117,17 @@ const RenderControls: React.FC<RenderControlsProps> = ({
           ]));
         }}>
           Sierpinski Triangle
+        </Button>
+        <Button onClick={() => {
+          onIterationOptionsChange({
+            ...defaultIterationOptions(),
+            camera_zoom: 0.5,
+          });
+          onPostProcessOptionsChange(defaultPostProcessingOptions());
+          onXformsChange(example());
+        }
+        }>
+          Example
         </Button>
       </HStack>
       <HStack>
@@ -485,25 +496,6 @@ const PaletteEditor: React.FC<PaletteEditorProps> = ({ palette, onPaletteChange 
                   </Select.Item>
                 );
               })}
-              {/*collection.items.map((item) => (
-                <Select.Item key={item.value} item={item} w="full" height="auto">
-                  <Flex direction="column" width="full">
-                    <Flex direction="row" width="full" justifyContent="space-between">
-                      <Select.ItemText>{item.label}</Select.ItemText>
-                      <Select.ItemIndicator>
-                        <CheckIcon />
-                      </Select.ItemIndicator>
-                    </Flex>
-                    <Box
-                      width="full"
-                      height="4"
-                      style={{
-                        background: item.background,
-                      }}
-                    />
-                  </Flex>
-                </Select.Item>
-              ))*/}
             </Select.List>
           </Select.Content>
         </Select.Positioner>
