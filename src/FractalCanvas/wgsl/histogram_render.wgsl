@@ -33,5 +33,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
       color = color / (f32(bucket.count));
     } 
 
+    // gamma correction
+    color = pow(color, vec3(getGamma()));
+
     textureStore(texture, vec2<u32>(x, y), vec4<f32>(color, alpha));
 }

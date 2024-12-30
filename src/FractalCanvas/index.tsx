@@ -110,48 +110,22 @@ FractalCanvas.displayName = 'FractalCanvas';
 
 const debugShader = wgsl`
   @link var texture: texture_2d<f32>;
-  @link fn getBackground() -> vec3<f32> {};
 
   fn main(uv: vec2<f32>) -> vec4<f32> {
     let size = vec2<f32>(textureDimensions(texture));
-
     let color = textureLoad(texture, vec2<i32>(uv * size), 0);
-    let background = getBackground();
-
-    // mix with background
-    return vec4f(mix(color.rgb, background.rgb, color.a), 1.0);
+    return color;
   }
 `;
 
 const VisualizeFullScreen = ({ texture }: { texture: StorageTarget }) => {
-  const background = [0.0, 0.0, 0.0];
-  const boundShader = useShader(debugShader, [texture, background]);
-  const textureSource = useLambdaSource(boundShader, texture);
-  return (
-    <RawFullScreen texture={textureSource} />
-  );
-};
-
-const VisualizeElement = ({ texture }: { texture: StorageTarget }) => {
   const boundShader = useShader(debugShader, [texture]);
   const textureSource = useLambdaSource(boundShader, texture);
   return (
-    <Element
-      width={texture.size[0]}
-      height={texture.size[1]}
-      image={{ fit: 'scale' }}
+    <RawFullScreen
       texture={textureSource}
+      blend="alpha"
     />
   );
-}
-
-// Wrap this in its own component to avoid JSX trashing of the view
-type CameraProps = PropsWithChildren<object>;
-const Camera: LC<CameraProps> = (props: CameraProps) => (
-  /* 2D pan controls + flat view */
-  <PanControls
-  >{
-      (x, y, zoom) => <FlatCamera x={x} y={y} zoom={zoom}>{props.children}</FlatCamera>
-    }</PanControls>
-);
+};
 
