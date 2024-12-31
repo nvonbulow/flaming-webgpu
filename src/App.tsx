@@ -3,8 +3,7 @@ import React, { useMemo, useState } from 'react';
 import { FractalCanvas } from './FractalCanvas';
 import { Box, Container, Flex, HStack, VStack } from 'styled-system/jsx';
 import { Slider } from './components/ui/slider';
-import { getPresetPalette, getPresetPaletteNames, IterationOptions, Palette, PostProcessingOptions, Variation, XForm } from './flame';
-import { barnsleyFern, example, sierpinskiTriangle, test1 } from './flame/generators';
+import { getPresetPalette, getPresetPaletteNames, Palette, Variation, XForm } from './flame';
 import { NumberInput } from './components/ui/number-input';
 import { Button } from './components/ui/button';
 import { Tabs } from './components/ui/tabs';
@@ -14,226 +13,8 @@ import { Checkbox } from './components/ui/checkbox';
 import { createListCollection, Select } from './components/ui/select';
 import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-
-const defaultIterationOptions = (): IterationOptions => ({
-  width: 800,
-  height: 600,
-  supersample: 2,
-  palette: getPresetPalette('fire-dragon'),
-  camera_x: 0,
-  camera_y: 0,
-  camera_zoom: 1,
-  batch_size: 10000,
-  parallelism: 1024,
-  batch_limit: 100,
-});
-
-const defaultPostProcessingOptions = (): PostProcessingOptions => ({
-  gamma: 4.0,
-});
-
-const defaultXforms = (): XForm[] => [{
-  variation: 'linear',
-  weight: 1.0,
-  color: 0.0,
-  speed: 0.0,
-  affine: [1, 0, 0, 0, 1, 0, 0, 0, 1],
-}];
-
-interface RenderControlsProps {
-  iterationOptions: IterationOptions;
-  postProcessOptions: PostProcessingOptions;
-  xforms: XForm[];
-
-  onPostProcessOptionsChange: (options: PostProcessingOptions) => void;
-  onIterationOptionsChange: (options: IterationOptions) => void;
-  onXformsChange: (xforms: XForm[]) => void;
-
-  live: boolean;
-  onToggleLive: () => void;
-  batchNumber: number;
-}
-
-const RenderControls: React.FC<RenderControlsProps> = ({
-  iterationOptions,
-  onIterationOptionsChange,
-  postProcessOptions,
-  onPostProcessOptionsChange,
-  xforms,
-  onXformsChange,
-  live,
-  onToggleLive,
-  batchNumber,
-}) => {
-  return (
-    <Container spaceY={4}>
-      <HStack>
-        <Button onClick={onToggleLive}>
-          {live ? 'Pause' : 'Resume'}
-        </Button>
-        <NumberInput
-          value={iterationOptions.batch_limit.toString()}
-          step={5}
-          onValueChange={({ value }) => {
-            onIterationOptionsChange({
-              ...iterationOptions,
-              batch_limit: Number(value),
-            });
-          }}
-        >
-          Batch Limit
-        </NumberInput>
-        <span>Batch: {batchNumber}</span>
-      </HStack>
-      <HStack>
-        <Button onClick={() => {
-          onIterationOptionsChange({
-            ...defaultIterationOptions(),
-            camera_x: 0.2,
-            camera_y: 5.0,
-            camera_zoom: 0.14,
-          });
-          onPostProcessOptionsChange(defaultPostProcessingOptions());
-          onXformsChange(barnsleyFern());
-        }}>
-          Barnsley Fern
-        </Button>
-        <Button onClick={() => {
-          onIterationOptionsChange({
-            ...defaultIterationOptions(),
-            camera_x: 0.0,
-            camera_y: 0.125,
-            camera_zoom: 2,
-            width: 800,
-            height: 800,
-          });
-          onPostProcessOptionsChange(defaultPostProcessingOptions());
-          onXformsChange(sierpinskiTriangle([
-            // points on an equilateral triangle
-            // centered at the origin with a side length of 1
-            [0.0, 0.57735],
-            [0.5, -0.288675],
-            [-0.5, -0.288675],
-          ]));
-        }}>
-          Sierpinski Triangle
-        </Button>
-        <Button onClick={() => {
-          onIterationOptionsChange({
-            ...defaultIterationOptions(),
-            width: 640,
-            height: 480,
-          });
-          onPostProcessOptionsChange(defaultPostProcessingOptions());
-          onXformsChange(test1());
-        }
-        }>
-          Example
-        </Button>
-      </HStack>
-      <HStack>
-        <NumberInput
-          value={iterationOptions.width.toString()}
-          step={1}
-          allowMouseWheel
-          onValueChange={({ value }) => {
-            onIterationOptionsChange({
-              ...iterationOptions,
-              width: Number(value),
-            });
-          }}
-        >
-          Width
-        </NumberInput>
-        <NumberInput
-          value={iterationOptions.height.toString()}
-          step={1}
-          allowMouseWheel
-          onValueChange={({ value }) => {
-            onIterationOptionsChange({
-              ...iterationOptions,
-              height: Number(value),
-            });
-          }}
-        >
-          Height
-        </NumberInput>
-        <NumberInput
-          value={iterationOptions.supersample.toString()}
-          step={1}
-          min={1}
-          max={4}
-          onValueChange={({ value }) => {
-            onIterationOptionsChange({
-              ...iterationOptions,
-              supersample: Number(value),
-            });
-          }}
-        >
-          Supersample
-        </NumberInput>
-      </HStack>
-      <HStack>
-        <Slider
-          min={1.0}
-          max={10.0}
-          step={0.1}
-          value={[postProcessOptions.gamma]}
-          onValueChange={({ value: [value] }) => {
-            onPostProcessOptionsChange({
-              ...postProcessOptions,
-              gamma: value,
-            });
-          }}
-        >
-          Gamma: {postProcessOptions.gamma}
-        </Slider>
-      </HStack>
-      <HStack>
-        <NumberInput
-          value={iterationOptions.camera_x.toString()}
-          step={0.1}
-          allowMouseWheel
-          onValueChange={({ value }) => {
-            onIterationOptionsChange({
-              ...iterationOptions,
-              camera_x: Number(value),
-            });
-          }}
-        >
-          Camera Center X
-        </NumberInput>
-        <NumberInput
-          value={iterationOptions.camera_y.toString()}
-          step={0.1}
-          allowMouseWheel
-          onValueChange={({ value }) => {
-            onIterationOptionsChange({
-              ...iterationOptions,
-              camera_y: Number(value),
-            });
-          }}
-        >
-          Camera Center Y
-        </NumberInput>
-      </HStack>
-      <Slider
-        min={0.01}
-        max={10.0}
-        step={0.01}
-        value={[iterationOptions.camera_zoom]}
-        onValueChange={({ value: [value] }) => {
-          onIterationOptionsChange({
-            ...iterationOptions,
-            camera_zoom: value,
-          });
-        }}
-      >
-        Camera Zoom: {iterationOptions.camera_zoom}
-      </Slider>
-    </Container>
-  );
-};
+import { defaultIterationOptions, defaultPostProcessingOptions, defaultXforms } from './defaults';
+import { RenderControls } from './components/config/render-options';
 
 interface XFormEditorProps {
   xform: XForm;
@@ -565,7 +346,7 @@ const PaletteEditor: React.FC<PaletteEditorProps> = ({ palette, onPaletteChange 
 };
 
 
-export const App = () => {
+export function App() {
   const [iterationOptions, setIterationOptions] = useState(defaultIterationOptions());
   const [postProcessOptions, setPostProcessOptions] = useState(defaultPostProcessingOptions());
   const [xforms, setXforms] = useState(defaultXforms());
@@ -574,12 +355,12 @@ export const App = () => {
 
   const [batchNumber, setBatchNumber] = useState(0);
 
-  const tabOptions = [
+  const tabOptions = useMemo(() => [
     { id: 'render', label: 'Render' },
     { id: 'xforms', label: 'XForms' },
     { id: 'ui', label: 'UI' },
     { id: 'palette', label: 'Palette' },
-  ];
+  ], []);
 
   const [showUi, setShowUi] = useState(true);
 
@@ -590,8 +371,6 @@ export const App = () => {
           {(canvas) => {
             canvas.width = iterationOptions.width;
             canvas.height = iterationOptions.height;
-            // canvas.width = 800;
-            // canvas.height = 600;
             return <FractalCanvas
               canvas={canvas}
               xforms={xforms}
