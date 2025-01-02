@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@ark-ui/react": "^4.3.0",
+    "@hookstate/core": "^4.0.1",
     "@tanstack/react-virtual": "^3.10.9",
     "@use-gpu/core": "^0.12.0",
     "@use-gpu/inspect": "^0.12.0",
