@@ -11,6 +11,47 @@ import { RenderControls } from '~/components/config/render-options';
 import { XFormEditor } from '~/components/config/x-form-editor';
 import { PaletteEditor } from '~/components/config/palette-editor';
 import { useXForms } from '~/hooks/flame-render';
+import { IterationOptions, PostProcessingOptions } from '~/flame';
+
+interface LiveFractalCanvasProps {
+  iterationOptions: IterationOptions;
+  postProcessOptions: PostProcessingOptions;
+  live: boolean;
+  showUi: boolean;
+  setBatchNumber: (batchNumber: number) => void;
+}
+
+function LiveFractalCanvas({
+  iterationOptions,
+  postProcessOptions,
+  live,
+  showUi,
+  setBatchNumber,
+}: LiveFractalCanvasProps) {
+  const { xforms: xformsState } = useXForms();
+  // need to memoize xforms to avoid re-rendering the canvas
+  // todo: figure out how to use hookstate with use-gpu
+  const xforms = useMemo(() => xformsState.get(), [xformsState]);
+
+  return (
+    <LiveCanvas>
+      {(canvas) => {
+        canvas.width = iterationOptions.width;
+        canvas.height = iterationOptions.height;
+        return <FractalCanvas
+          canvas={canvas}
+          // todo: fix types
+          xforms={xforms}
+          iterationOptions={iterationOptions}
+          postProcessOptions={postProcessOptions}
+          live={live}
+          onRenderBatch={setBatchNumber}
+          showUi={showUi}
+        />;
+      }}
+    </LiveCanvas>
+  );
+}
 
 export function FlameEditor() {
   const [iterationOptions, setIterationOptions] = useState(defaultIterationOptions());
@@ -34,22 +75,13 @@ export function FlameEditor() {
   return (
     <Container display="flex" py="12" gap="8" justifyContent="center" height="svh">
       <HStack gap="4">
-        <LiveCanvas>
-          {(canvas) => {
-            canvas.width = iterationOptions.width;
-            canvas.height = iterationOptions.height;
-            return <FractalCanvas
-              canvas={canvas}
-              // todo: fix types
-              xforms={xforms.value}
-              iterationOptions={iterationOptions}
-              postProcessOptions={postProcessOptions}
-              live={live}
-              onRenderBatch={setBatchNumber}
-              showUi={showUi}
-            />;
-          }}
-        </LiveCanvas>
+        <LiveFractalCanvas
+          iterationOptions={iterationOptions}
+          postProcessOptions={postProcessOptions}
+          live={live}
+          showUi={showUi}
+          setBatchNumber={setBatchNumber}
+        />
         <Container height="full">
           <Tabs.Root defaultValue="render" height="full">
             <Tabs.List>
