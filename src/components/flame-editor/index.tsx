@@ -10,10 +10,13 @@ import { defaultIterationOptions, defaultPostProcessingOptions, defaultXforms } 
 import { RenderControls } from '~/components/config/render-options';
 import { XFormEditor } from '~/components/config/x-form-editor';
 import { PaletteEditor } from '~/components/config/palette-editor';
+import { useXForms } from '~/hooks/flame-render';
 
 export function FlameEditor() {
   const [iterationOptions, setIterationOptions] = useState(defaultIterationOptions());
   const [postProcessOptions, setPostProcessOptions] = useState(defaultPostProcessingOptions());
+
+  const { xforms } = useXForms();
 
   const [live, setLive] = useState(true);
 
@@ -37,7 +40,8 @@ export function FlameEditor() {
             canvas.height = iterationOptions.height;
             return <FractalCanvas
               canvas={canvas}
-              xforms={xforms}
+              // todo: fix types
+              xforms={xforms.value}
               iterationOptions={iterationOptions}
               postProcessOptions={postProcessOptions}
               live={live}
@@ -78,7 +82,7 @@ export function FlameEditor() {
               </Tabs.Content>
               <Tabs.Content value="xforms">
                 <Button onClick={() => {
-                  setXforms([...xforms, ...defaultXforms()]);
+                  xforms.merge(defaultXforms()[0]);
                 }}>
                   Add XForm
                 </Button>
@@ -91,19 +95,7 @@ export function FlameEditor() {
                         </Card.Title>
                       </Card.Header>
                       <Card.Body>
-                        <XFormEditor
-                          xform={xform}
-                          onXformChange={(xform) => {
-                            const new_xforms = [...xforms];
-                            new_xforms[index] = xform;
-                            setXforms(new_xforms);
-                          }}
-                          onXFormDelete={() => {
-                            const new_xforms = [...xforms];
-                            new_xforms.splice(index, 1);
-                            setXforms(new_xforms);
-                          }}
-                        />
+                        <XFormEditor xform={xform} />
                       </Card.Body>
                     </Card.Root>
                   ))}

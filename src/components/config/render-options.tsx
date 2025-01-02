@@ -2,17 +2,16 @@ import { Container, HStack } from "styled-system/jsx";
 import { Button } from "../ui/button";
 import { NumberInput } from "../ui/number-input";
 import { defaultIterationOptions, defaultPostProcessingOptions } from "~/defaults";
-import { barnsleyFern, IterationOptions, PostProcessingOptions, sierpinskiTriangle, test1, XForm } from "~/flame";
+import { barnsleyFern, IterationOptions, PostProcessingOptions, sierpinskiTriangle, test1 } from "~/flame";
 import { Slider } from "../ui/slider";
+import { useXForms } from "~/hooks/flame-render";
 
 export interface RenderControlsProps {
   iterationOptions: IterationOptions;
   postProcessOptions: PostProcessingOptions;
-  xforms: XForm[];
 
   onPostProcessOptionsChange: (options: PostProcessingOptions) => void;
   onIterationOptionsChange: (options: IterationOptions) => void;
-  onXformsChange: (xforms: XForm[]) => void;
 
   live: boolean;
   onToggleLive: () => void;
@@ -24,11 +23,13 @@ export function RenderControls ({
   onIterationOptionsChange,
   postProcessOptions,
   onPostProcessOptionsChange,
-  onXformsChange,
   live,
   onToggleLive,
   batchNumber,
 }: RenderControlsProps) {
+
+  const { xforms } = useXForms();
+
   return (
     <Container spaceY={4}>
       <HStack>
@@ -58,7 +59,7 @@ export function RenderControls ({
             camera_zoom: 0.14,
           });
           onPostProcessOptionsChange(defaultPostProcessingOptions());
-          onXformsChange(barnsleyFern());
+          xforms.set(barnsleyFern());
         }}>
           Barnsley Fern
         </Button>
@@ -72,7 +73,7 @@ export function RenderControls ({
             height: 800,
           });
           onPostProcessOptionsChange(defaultPostProcessingOptions());
-          onXformsChange(sierpinskiTriangle([
+          xforms.set(sierpinskiTriangle([
             // points on an equilateral triangle
             // centered at the origin with a side length of 1
             [0.0, 0.57735],
@@ -89,7 +90,7 @@ export function RenderControls ({
             height: 480,
           });
           onPostProcessOptionsChange(defaultPostProcessingOptions());
-          onXformsChange(test1());
+          xforms.set(test1());
         }
         }>
           Example
