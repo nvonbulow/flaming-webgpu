@@ -71,9 +71,7 @@ export type IterationOptions = z.infer<typeof IterationOptionsSchema>;
 /**
  * @deprecated to be replaced by the flame schema
  */
-export const PostProcessingOptionsSchema = z.object({
-  gamma: z.number().min(0),
-});
+export const PostProcessingOptionsSchema = z.object({ });
 /** @deprecated */
 export type PostProcessingOptions = z.infer<typeof PostProcessingOptionsSchema>;
 
@@ -102,6 +100,9 @@ export type Palette = z.infer<typeof PaletteSchema>;
 // todo: move other options here
 export const FlameSchema = z.object({
   xforms: z.array(XFormSchema),
+  coloring: z.object({
+    gamma: z.number().min(0).default(1.0),
+  }),
 });
 export type Flame = z.infer<typeof FlameSchema>;
 

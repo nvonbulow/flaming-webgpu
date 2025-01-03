@@ -5,9 +5,12 @@ import { FlameEditor } from "./components/flame-editor";
 import { devtools } from "@hookstate/devtools";
 import { Flame } from "~/flame";
 
-const flameRenderState = hookstate<Flame>({
+const flameRenderState = hookstate({
   xforms: defaultXforms(),
-}, devtools({ key: 'flame' }));
+  coloring: {
+    gamma: 1.0,
+  },
+} satisfies Flame, devtools({ key: 'flame' }));
 
 export function App() {
   return (

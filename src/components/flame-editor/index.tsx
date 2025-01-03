@@ -105,8 +105,6 @@ export function FlameEditor() {
                 <RenderControls
                   iterationOptions={iterationOptions}
                   onIterationOptionsChange={setIterationOptions}
-                  postProcessOptions={postProcessOptions}
-                  onPostProcessOptionsChange={setPostProcessOptions}
                   live={live}
                   onToggleLive={() => setLive(!live)}
                   batchNumber={batchNumber}

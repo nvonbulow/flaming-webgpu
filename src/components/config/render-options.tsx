@@ -1,16 +1,13 @@
 import { Container, HStack } from "styled-system/jsx";
 import { Button } from "../ui/button";
 import { NumberInput } from "../ui/number-input";
-import { defaultIterationOptions, defaultPostProcessingOptions } from "~/defaults";
-import { barnsleyFern, IterationOptions, PostProcessingOptions, sierpinskiTriangle, test1 } from "~/flame";
+import { defaultIterationOptions } from "~/defaults";
+import { barnsleyFern, IterationOptions, sierpinskiTriangle, test1 } from "~/flame";
 import { Slider } from "../ui/slider";
-import { useXForms } from "~/hooks/flame-render";
+import { useFlame, useXForms } from "~/hooks/flame-render";
 
 export interface RenderControlsProps {
   iterationOptions: IterationOptions;
-  postProcessOptions: PostProcessingOptions;
-
-  onPostProcessOptionsChange: (options: PostProcessingOptions) => void;
   onIterationOptionsChange: (options: IterationOptions) => void;
 
   live: boolean;
@@ -21,13 +18,12 @@ export interface RenderControlsProps {
 export function RenderControls ({
   iterationOptions,
   onIterationOptionsChange,
-  postProcessOptions,
-  onPostProcessOptionsChange,
   live,
   onToggleLive,
   batchNumber,
 }: RenderControlsProps) {
-
+  const flame = useFlame();
+  const { gamma } = flame.coloring;
   const { xforms } = useXForms();
 
   return (
@@ -50,6 +46,7 @@ export function RenderControls ({
         </NumberInput>
         <span>Batch: {batchNumber}</span>
       </HStack>
+      {/* todo: move these presets to a function */}
       <HStack>
         <Button onClick={() => {
           onIterationOptionsChange({
@@ -58,7 +55,7 @@ export function RenderControls ({
             camera_y: 5.0,
             camera_zoom: 0.14,
           });
-          onPostProcessOptionsChange(defaultPostProcessingOptions());
+          gamma.set(2.0);
           xforms.set(barnsleyFern());
         }}>
           Barnsley Fern
@@ -72,7 +69,7 @@ export function RenderControls ({
             width: 800,
             height: 800,
           });
-          onPostProcessOptionsChange(defaultPostProcessingOptions());
+          gamma.set(1.0);
           xforms.set(sierpinskiTriangle([
             // points on an equilateral triangle
             // centered at the origin with a side length of 1
@@ -89,7 +86,7 @@ export function RenderControls ({
             width: 640,
             height: 480,
           });
-          onPostProcessOptionsChange(defaultPostProcessingOptions());
+          gamma.set(1.0);
           xforms.set(test1());
         }
         }>
@@ -143,15 +140,12 @@ export function RenderControls ({
           min={1.0}
           max={10.0}
           step={0.1}
-          value={[postProcessOptions.gamma]}
+          value={[gamma.value]}
           onValueChange={({ value: [value] }) => {
-            onPostProcessOptionsChange({
-              ...postProcessOptions,
-              gamma: value,
-            });
+            gamma.set(value);
           }}
         >
-          Gamma: {postProcessOptions.gamma}
+          Gamma: {gamma.value}
         </Slider>
       </HStack>
       <HStack>
