@@ -10,7 +10,7 @@ import { defaultIterationOptions, defaultPostProcessingOptions, defaultXforms } 
 import { RenderControls } from '~/components/config/render-options';
 import { XFormEditor } from '~/components/config/x-form-editor';
 import { PaletteEditor } from '~/components/config/palette-editor';
-import { useXForms } from '~/hooks/flame-render';
+import { useFlame, useXForms } from '~/hooks/flame-render';
 import { IterationOptions, PostProcessingOptions } from '~/flame';
 
 interface LiveFractalCanvasProps {
@@ -28,6 +28,7 @@ function FractalCanvas({
   showUi,
   setBatchNumber,
 }: LiveFractalCanvasProps) {
+  const flame = useFlame();
   const { xforms: xformsState } = useXForms();
   // need to memoize xforms to avoid re-rendering the canvas
   // todo: figure out how to use hookstate with use-gpu
@@ -40,6 +41,7 @@ function FractalCanvas({
         canvas.height = iterationOptions.height;
         return <LiveFractalCanvas
           canvas={canvas}
+          flame={flame}
           // todo: fix types
           xforms={xforms}
           iterationOptions={iterationOptions}
@@ -55,7 +57,7 @@ function FractalCanvas({
 
 export function FlameEditor() {
   const [iterationOptions, setIterationOptions] = useState(defaultIterationOptions());
-  const [postProcessOptions, setPostProcessOptions] = useState(defaultPostProcessingOptions());
+  const [postProcessOptions] = useState(defaultPostProcessingOptions());
 
   const { xforms } = useXForms();
 

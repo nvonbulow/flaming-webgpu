@@ -10,6 +10,7 @@ import { XForm as GpuXForm } from './wgsl/types.wgsl';
 import { clearBuffer, StorageTarget } from "@use-gpu/core";
 
 import { ComputeLoop } from "./ComputeLoop";
+import { useFlame } from "./fractal-provider";
 
 const variationIdMap = {
   linear: 0,
@@ -40,7 +41,6 @@ const variationIdMap = {
 export interface FractalRendererProps {
   xforms: XForm[];
   iterationOptions: IterationOptions;
-  postProcessOptions: PostProcessingOptions;
   children: (texture: StorageTarget) => LiveElement<any>;
   live?: boolean;
   onRenderBatch?: (count: number) => void;
@@ -49,11 +49,12 @@ export interface FractalRendererProps {
 export const FractalRendererPipeline: LC<FractalRendererProps> = ({
   xforms: xforms,
   iterationOptions,
-  postProcessOptions,
   children,
   live = true,
   onRenderBatch,
 }) => {
+  const flame = useFlame();
+  const { coloring } = flame;
 
   const {
     width, height, supersample,
@@ -154,7 +155,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
                 useResource(() => {
                   clearBuffer(device, histogram_buf.buffer);
                   resetCount();
-                }, [iterationOptions, postProcessOptions, xformData]);
+                }, [iterationOptions, flame.get({ noproxy: true }), xformData]);
                 return (
                   <Suspense>
                     <Stage targets={[histogram_buf]}>
@@ -199,7 +200,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
                         sources={[downsampled_histogram_buf, histogram_max_buf]}
                         shader={renderHistogram as any}
                         args={[
-                          postProcessOptions.gamma,
+                          coloring.gamma.value,
                         ]}
                         size={rendered_hist.size}
                       />
