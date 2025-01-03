@@ -6,16 +6,15 @@ import { Button } from '~/components/ui/button';
 import { Tabs } from '~/components/ui/tabs';
 import { Card } from '~/components/ui/card';
 import { Checkbox } from '~/components/ui/checkbox';
-import { defaultIterationOptions, defaultPostProcessingOptions, defaultXforms } from '~/defaults';
+import { defaultIterationOptions, defaultXforms } from '~/defaults';
 import { RenderControls } from '~/components/config/render-options';
 import { XFormEditor } from '~/components/config/x-form-editor';
 import { PaletteEditor } from '~/components/config/palette-editor';
 import { useFlame, useXForms } from '~/hooks/flame-render';
-import { IterationOptions, PostProcessingOptions } from '~/flame';
+import { IterationOptions } from '~/flame';
 
 interface LiveFractalCanvasProps {
   iterationOptions: IterationOptions;
-  postProcessOptions: PostProcessingOptions;
   live: boolean;
   showUi: boolean;
   setBatchNumber: (batchNumber: number) => void;
@@ -23,7 +22,6 @@ interface LiveFractalCanvasProps {
 
 function FractalCanvas({
   iterationOptions,
-  postProcessOptions,
   live,
   showUi,
   setBatchNumber,
@@ -45,7 +43,6 @@ function FractalCanvas({
           // todo: fix types
           xforms={xforms}
           iterationOptions={iterationOptions}
-          postProcessOptions={postProcessOptions}
           live={live}
           onRenderBatch={setBatchNumber}
           showUi={showUi}
@@ -57,7 +54,6 @@ function FractalCanvas({
 
 export function FlameEditor() {
   const [iterationOptions, setIterationOptions] = useState(defaultIterationOptions());
-  const [postProcessOptions] = useState(defaultPostProcessingOptions());
 
   const { xforms } = useXForms();
 
@@ -79,7 +75,6 @@ export function FlameEditor() {
       <HStack gap="4">
         <FractalCanvas
           iterationOptions={iterationOptions}
-          postProcessOptions={postProcessOptions}
           live={live}
           showUi={showUi}
           setBatchNumber={setBatchNumber}

@@ -1,8 +1,8 @@
-import React, { type LC, type PropsWithChildren, Provide, useFiber } from '@use-gpu/live';
+import { type LC, type PropsWithChildren, Provide, useFiber } from '@use-gpu/live';
 
 import { HTML } from '@use-gpu/react';
 import { Canvas, DOMEvents, WebGPU } from '@use-gpu/webgpu';
-import { DebugProvider, FontLoader, FlatCamera, CursorProvider, PickingTarget, PanControls, LinearRGB, useShader, useLambdaSource, RawFullScreen, Pass, Loop } from '@use-gpu/workbench';
+import { DebugProvider, FontLoader, FlatCamera, CursorProvider, PickingTarget, LinearRGB, useShader, useLambdaSource, RawFullScreen, Pass, Loop } from '@use-gpu/workbench';
 import { StorageTarget } from '@use-gpu/core';
 
 import { wgsl } from '@use-gpu/shader/wgsl';
@@ -13,9 +13,8 @@ import '@use-gpu/inspect/theme.css';
 
 import { makeFallback } from './Fallback';
 
-import { Flame, IterationOptions, PostProcessingOptions, type XForm } from '~/flame';
+import { Flame, IterationOptions, type XForm } from '~/flame';
 import { FractalRendererPipeline } from './FractalRendererPipeline';
-import { Element } from '@use-gpu/layout';
 import { FractalUiLayer } from './FractalUiLayer';
 import { State } from '@hookstate/core';
 import { FlameContext } from './fractal-provider';

@@ -68,13 +68,6 @@ export const IterationOptionsSchema = z.object({
 /** @deprecated */
 export type IterationOptions = z.infer<typeof IterationOptionsSchema>;
 
-/**
- * @deprecated to be replaced by the flame schema
- */
-export const PostProcessingOptionsSchema = z.object({ });
-/** @deprecated */
-export type PostProcessingOptions = z.infer<typeof PostProcessingOptionsSchema>;
-
 export const PaletteColor = z.array(
   z.number().min(0).max(1),
 ).length(3);
