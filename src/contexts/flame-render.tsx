@@ -1,10 +1,8 @@
 import { State } from "@hookstate/core"
 import { createContext } from "react";
-import { XForm } from "~/flame";
+import { Flame } from "~/flame";
 
-type FlameRenderContextType = State<{
-  xforms: XForm[];
-}>;
+type FlameRenderContextType = State<Flame>;
 
 export const FlameRenderContext = createContext<FlameRenderContextType>(null!);
 

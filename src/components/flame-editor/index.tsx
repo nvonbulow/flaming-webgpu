@@ -1,6 +1,6 @@
 import { LiveCanvas } from '@use-gpu/react';
 import { useMemo, useState } from 'react';
-import { FractalCanvas } from '~/FractalCanvas';
+import { FractalCanvas as LiveFractalCanvas } from '~/FractalCanvas';
 import { Box, Container, HStack, VStack } from 'styled-system/jsx';
 import { Button } from '~/components/ui/button';
 import { Tabs } from '~/components/ui/tabs';
@@ -21,7 +21,7 @@ interface LiveFractalCanvasProps {
   setBatchNumber: (batchNumber: number) => void;
 }
 
-function LiveFractalCanvas({
+function FractalCanvas({
   iterationOptions,
   postProcessOptions,
   live,
@@ -38,7 +38,7 @@ function LiveFractalCanvas({
       {(canvas) => {
         canvas.width = iterationOptions.width;
         canvas.height = iterationOptions.height;
-        return <FractalCanvas
+        return <LiveFractalCanvas
           canvas={canvas}
           // todo: fix types
           xforms={xforms}
@@ -75,7 +75,7 @@ export function FlameEditor() {
   return (
     <Container display="flex" py="12" gap="8" justifyContent="center" height="svh">
       <HStack gap="4">
-        <LiveFractalCanvas
+        <FractalCanvas
           iterationOptions={iterationOptions}
           postProcessOptions={postProcessOptions}
           live={live}

@@ -37,6 +37,9 @@ export const XFormSchema = z.object({
 });
 export type XForm = z.infer<typeof XFormSchema>;
 
+/**
+ * @deprecated to be replaced by the flame schema
+ */
 export const IterationOptionsSchema = z.object({
   // dimensions of the output image
   width: z.number().int().positive().default(800),
@@ -62,11 +65,16 @@ export const IterationOptionsSchema = z.object({
   // maximum number of batches to run
   batch_limit: z.number().int().positive().default(100),
 });
+/** @deprecated */
 export type IterationOptions = z.infer<typeof IterationOptionsSchema>;
 
+/**
+ * @deprecated to be replaced by the flame schema
+ */
 export const PostProcessingOptionsSchema = z.object({
   gamma: z.number().min(0),
 });
+/** @deprecated */
 export type PostProcessingOptions = z.infer<typeof PostProcessingOptionsSchema>;
 
 export const PaletteColor = z.array(
@@ -90,4 +98,10 @@ export const PaletteSchema = z.object({
   colors: RawPaletteSchema,
 });
 export type Palette = z.infer<typeof PaletteSchema>;
+
+// todo: move other options here
+export const FlameSchema = z.object({
+  xforms: z.array(XFormSchema),
+});
+export type Flame = z.infer<typeof FlameSchema>;
 
