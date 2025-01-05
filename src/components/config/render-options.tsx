@@ -1,10 +1,16 @@
+import { useCallback, useMemo } from "react";
 import { Container, HStack } from "styled-system/jsx";
 import { Button } from "../ui/button";
 import { NumberInput } from "../ui/number-input";
 import { defaultIterationOptions } from "~/defaults";
-import { barnsleyFern, IterationOptions, sierpinskiTriangle, test1 } from "~/flame";
+import { barnsleyFern, Flame, IterationOptions, sierpinskiTriangle, test1 } from "~/flame";
 import { Slider } from "../ui/slider";
-import { useFlame, useXForms } from "~/hooks/flame-render";
+import { useXForms } from "~/hooks/flame-render";
+import { useContext } from "react";
+import { FlameRenderContext } from "~/contexts/flame-render";
+import { useAtom, useSetAtom } from "jotai";
+import { focusAtom } from 'jotai-optics';
+import { OpticFor } from "optics-ts";
 
 export interface RenderControlsProps {
   iterationOptions: IterationOptions;
@@ -15,16 +21,21 @@ export interface RenderControlsProps {
   batchNumber: number;
 }
 
-export function RenderControls ({
+export function RenderControls({
   iterationOptions,
   onIterationOptionsChange,
   live,
   onToggleLive,
   batchNumber,
 }: RenderControlsProps) {
-  const flame = useFlame();
-  const { gamma } = flame.coloring;
-  const { xforms } = useXForms();
+  const { flameAtom } = useContext(FlameRenderContext);
+  const [gamma, setGamma] = useAtom(
+    useMemo(() => focusAtom(flameAtom, o => o.prop('coloring').prop('gamma')), [flameAtom])
+  );
+
+  const setXforms = useSetAtom(
+    useMemo(() => focusAtom(flameAtom, o => o.prop('xforms')), [flameAtom])
+  );
 
   return (
     <Container spaceY={4}>
@@ -55,8 +66,8 @@ export function RenderControls ({
             camera_y: 5.0,
             camera_zoom: 0.14,
           });
-          gamma.set(2.0);
-          xforms.set(barnsleyFern());
+          setGamma(2.0);
+          setXforms(barnsleyFern());
         }}>
           Barnsley Fern
         </Button>
@@ -69,8 +80,8 @@ export function RenderControls ({
             width: 800,
             height: 800,
           });
-          gamma.set(1.0);
-          xforms.set(sierpinskiTriangle([
+          setGamma(1.0);
+          setXforms(sierpinskiTriangle([
             // points on an equilateral triangle
             // centered at the origin with a side length of 1
             [0.0, 0.57735],
@@ -86,8 +97,8 @@ export function RenderControls ({
             width: 640,
             height: 480,
           });
-          gamma.set(1.0);
-          xforms.set(test1());
+          setGamma(1.0);
+          setXforms(test1());
         }
         }>
           Example
@@ -140,12 +151,12 @@ export function RenderControls ({
           min={1.0}
           max={10.0}
           step={0.1}
-          value={[gamma.value]}
+          value={[gamma]}
           onValueChange={({ value: [value] }) => {
-            gamma.set(value);
+            setGamma(value);
           }}
         >
-          Gamma: {gamma.value}
+          Gamma: {gamma}
         </Slider>
       </HStack>
       <HStack>

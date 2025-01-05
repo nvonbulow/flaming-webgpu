@@ -15,7 +15,16 @@ export default defineConfig({
     tsconfigPaths({ root: './' }),
     wasm(),
     topLevelAwait(),
-    react(),
+    react({
+      babel: {
+        "plugins": [
+          // Enables hot reload for atoms
+          "jotai/babel/plugin-react-refresh",
+          // Automatically adds debug labels to the atoms
+          "jotai/babel/plugin-debug-label"
+        ]
+      },
+    }),
     // eslint(),
     // checker({
     //   typescript: true,

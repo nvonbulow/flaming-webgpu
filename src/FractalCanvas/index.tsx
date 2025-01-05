@@ -18,6 +18,8 @@ import { FractalRendererPipeline } from './FractalRendererPipeline';
 import { FractalUiLayer } from './FractalUiLayer';
 import { State } from '@hookstate/core';
 import { FlameContext } from './fractal-provider';
+import { JotaiContext, JotaiStore } from '~/live/jotai';
+import { Atom } from 'jotai';
 
 const FONTS = [
   {
@@ -58,7 +60,6 @@ export const CanvasSkeleton: LC<PropsWithChildren<CanvasSkeletonProps>> = ({
 interface FractalCanvasProps {
   canvas: HTMLCanvasElement;
   xforms: XForm[];
-  flame: State<Flame>;
   iterationOptions: IterationOptions;
   live?: boolean;
   onRenderBatch?: (count: number) => void;
@@ -67,7 +68,6 @@ interface FractalCanvasProps {
 
 export const FractalCanvas: LC<FractalCanvasProps> = ({
   canvas,
-  flame,
   showUi = false,
   ...props
 }) => {
@@ -77,37 +77,35 @@ export const FractalCanvas: LC<FractalCanvasProps> = ({
   const fiber = useFiber();
 
   return (
-    <Provide context={FlameContext} value={flame}>
-      <UseInspect fiber={fiber} provider={DebugProvider} extensions={[inspectGPU]}>
-        <WebGPU // WebGPU Canvas with a font
-          fallback={(error: Error) => <HTML container={root}>{makeFallback(error)}</HTML>}
-        >
-          <FractalRendererPipeline {...props}>
-            {(texture: StorageTarget) => (
-              <CanvasSkeleton canvas={canvas} >
-                <Loop live>
-                  <LinearRGB>
-                    <Pass>
-                      <VisualizeFullScreen texture={texture} />
-                    </Pass>
-                    <FlatCamera>
-                      {showUi && (
-                        <Pass overlay>
-                          <FractalUiLayer
-                            xforms={props.xforms}
-                            iterationOptions={props.iterationOptions}
-                          />
-                        </Pass>
-                      )}
-                    </FlatCamera>
-                  </LinearRGB>
-                </Loop>
-              </CanvasSkeleton>
-            )}
-          </FractalRendererPipeline>
-        </WebGPU>
-      </UseInspect>
-    </Provide>
+    <UseInspect fiber={fiber} provider={DebugProvider} extensions={[inspectGPU]}>
+      <WebGPU // WebGPU Canvas with a font
+        fallback={(error: Error) => <HTML container={root}>{makeFallback(error)}</HTML>}
+      >
+        <FractalRendererPipeline {...props}>
+          {(texture: StorageTarget) => (
+            <CanvasSkeleton canvas={canvas} >
+              <Loop live>
+                <LinearRGB>
+                  <Pass>
+                    <VisualizeFullScreen texture={texture} />
+                  </Pass>
+                  <FlatCamera>
+                    {showUi && (
+                      <Pass overlay>
+                        <FractalUiLayer
+                          xforms={props.xforms}
+                          iterationOptions={props.iterationOptions}
+                        />
+                      </Pass>
+                    )}
+                  </FlatCamera>
+                </LinearRGB>
+              </Loop>
+            </CanvasSkeleton>
+          )}
+        </FractalRendererPipeline>
+      </WebGPU>
+    </UseInspect>
   );
 };
 FractalCanvas.displayName = 'FractalCanvas';

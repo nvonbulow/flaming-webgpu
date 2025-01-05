@@ -5,17 +5,35 @@ import { FlameEditor } from "./components/flame-editor";
 import { devtools } from "@hookstate/devtools";
 import { Flame } from "~/flame";
 
-const flameRenderState = hookstate({
+import { DevTools } from 'jotai-devtools';
+// todo: remove in production
+import 'jotai-devtools/styles.css';
+
+import { atom, createStore, Provider } from 'jotai';
+
+const defaultFlame: Flame = {
   xforms: defaultXforms(),
   coloring: {
     gamma: 1.0,
   },
-} satisfies Flame, devtools({ key: 'flame' }));
+};
+
+const flameRenderState = hookstate(defaultFlame, devtools({ key: 'flame' }));
+
+const flameAtom = atom(defaultFlame);
+
+const store = createStore();
 
 export function App() {
-  return (
-    <FlameRenderContext.Provider value={flameRenderState}>
-      <FlameEditor />
-    </FlameRenderContext.Provider>
-  );
+  return (<>
+    <Provider store={store}>
+      <FlameRenderContext.Provider value={{
+        hookstate: flameRenderState,
+        flameAtom,
+      }}>
+        <FlameEditor />
+      </FlameRenderContext.Provider>
+      <DevTools />
+    </Provider>
+  </>);
 }

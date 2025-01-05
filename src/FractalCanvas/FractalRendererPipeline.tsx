@@ -1,4 +1,4 @@
-import React, { Gather, LC, LiveElement, Provide, useMemo, useResource } from "@use-gpu/live";
+import React, { Gather, LC, LiveElement, Provide, useContext, useMemo, useResource } from "@use-gpu/live";
 import { ComputeBuffer, Kernel, RawData, RenderContext, Stage, StructData, Suspense, TextureBuffer, useDeviceContext } from "@use-gpu/workbench";
 import { getCameraMatrix, IterationOptions, normalizeXForms, XForm } from "~/flame";
 
@@ -10,7 +10,8 @@ import { XForm as GpuXForm } from './wgsl/types.wgsl';
 import { clearBuffer, StorageTarget } from "@use-gpu/core";
 
 import { ComputeLoop } from "./ComputeLoop";
-import { useFlame } from "./fractal-provider";
+import { FlameContext, useFlame, useFlameAtomValue } from "./fractal-provider";
+import { useAtomSelector, useAtomValue } from "~/live/jotai";
 
 const variationIdMap = {
   linear: 0,
@@ -47,14 +48,15 @@ export interface FractalRendererProps {
 };
 
 export const FractalRendererPipeline: LC<FractalRendererProps> = ({
-  xforms: xforms,
   iterationOptions,
   children,
   live = true,
   onRenderBatch,
 }) => {
-  const flame = useFlame();
-  const { coloring } = flame;
+  const { flameAtom } = useContext(FlameContext)!;
+
+  const coloring = useAtomSelector(flameAtom, (flame) => flame.coloring);
+  const xforms = useAtomSelector(flameAtom, (flame) => flame.xforms);
 
   const {
     width, height, supersample,
@@ -65,7 +67,6 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
 
   const xformData = useMemo(() => normalizeXForms(xforms).map(xf => ({
     ...xf,
-    variation: undefined,
     variation_id: variationIdMap[xf.variation] || 0,
   })), [xforms]);
 
@@ -155,7 +156,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
                 useResource(() => {
                   clearBuffer(device, histogram_buf.buffer);
                   resetCount();
-                }, [iterationOptions, flame.get({ noproxy: true }), xformData]);
+                }, [iterationOptions, xformData, coloring]);
                 return (
                   <Suspense>
                     <Stage targets={[histogram_buf]}>
@@ -200,7 +201,7 @@ export const FractalRendererPipeline: LC<FractalRendererProps> = ({
                         sources={[downsampled_histogram_buf, histogram_max_buf]}
                         shader={renderHistogram as any}
                         args={[
-                          coloring.gamma.value,
+                          coloring.gamma,
                         ]}
                         size={rendered_hist.size}
                       />

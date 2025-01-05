@@ -3,8 +3,8 @@ import { useContext } from "react";
 import { FlameRenderContext } from "~/contexts/flame-render";
 
 export function useFlame() {
-  const flame = useContext(FlameRenderContext);
-  return useHookstate(flame);
+  const { hookstate } = useContext(FlameRenderContext);
+  return useHookstate(hookstate);
 }
 
 export function useXForms() {

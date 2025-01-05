@@ -1,5 +1,5 @@
 import { LiveCanvas } from '@use-gpu/react';
-import { useMemo, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import { FractalCanvas as LiveFractalCanvas } from '~/FractalCanvas';
 import { Box, Container, HStack, VStack } from 'styled-system/jsx';
 import { Button } from '~/components/ui/button';
@@ -12,6 +12,11 @@ import { XFormEditor } from '~/components/config/x-form-editor';
 import { PaletteEditor } from '~/components/config/palette-editor';
 import { useFlame, useXForms } from '~/hooks/flame-render';
 import { IterationOptions } from '~/flame';
+import { useStore } from 'jotai';
+import { FlameRenderContext } from '~/contexts/flame-render';
+import { Provide } from '@use-gpu/live';
+import { JotaiContext } from '~/live/jotai';
+import { FlameContext } from '~/FractalCanvas/fractal-provider';
 
 interface LiveFractalCanvasProps {
   iterationOptions: IterationOptions;
@@ -31,22 +36,29 @@ function FractalCanvas({
   // need to memoize xforms to avoid re-rendering the canvas
   // todo: figure out how to use hookstate with use-gpu
   const xforms = useMemo(() => xformsState.get(), [xformsState]);
+  const store = useStore();
+  const { flameAtom } = useContext(FlameRenderContext);
 
   return (
     <LiveCanvas>
       {(canvas) => {
         canvas.width = iterationOptions.width;
         canvas.height = iterationOptions.height;
-        return <LiveFractalCanvas
-          canvas={canvas}
-          flame={flame}
-          // todo: fix types
-          xforms={xforms}
-          iterationOptions={iterationOptions}
-          live={live}
-          onRenderBatch={setBatchNumber}
-          showUi={showUi}
-        />;
+        return (
+          <Provide context={JotaiContext} value={{ store }}>
+            <Provide context={FlameContext} value={{ flameAtom, hookstate: flame }}>
+              <LiveFractalCanvas
+                canvas={canvas}
+                // todo: fix types
+                xforms={xforms}
+                iterationOptions={iterationOptions}
+                live={live}
+                onRenderBatch={setBatchNumber}
+                showUi={showUi}
+              />
+            </Provide>
+          </Provide>
+        );
       }}
     </LiveCanvas>
   );
